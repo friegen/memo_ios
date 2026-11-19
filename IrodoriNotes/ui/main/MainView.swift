@@ -26,7 +26,8 @@ struct MainView: View {
         TabView(selection: tabSelection) {
             Tab("tab_memo", systemImage: "note.text", value: MainTab.memo) {
                 NavigationStack(path: $memoPath) {
-                    MemoListScreen()
+                    MemoListScreen(container: container, path: $memoPath)
+                        .navigationDestination(for: AppRoute.self, destination: destination)
                 }
             }
             Tab("tab_folder", systemImage: "folder", value: MainTab.folder) {
@@ -42,6 +43,15 @@ struct MainView: View {
         }
         .background(WindowThemeApplier(mode: viewModel.uiState.themeMode))
         .task { await viewModel.observe() }
+    }
+
+    /// タブの中で開く画面。
+    @ViewBuilder
+    private func destination(_ route: AppRoute) -> some View {
+        switch route {
+        case .editor(let memoId, let folderId):
+            MemoEditScreen(memoId: memoId, folderId: folderId)
+        }
     }
 
     /// タブを選んだら、そのタブの画面の積み重ねを消してトップに戻す（今いるタブをもう一度押したときも）。

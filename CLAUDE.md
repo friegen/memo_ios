@@ -32,7 +32,9 @@ Android 版の「5. 将来対応」「機能の候補」にあるものは作ら
 - Repository は DB のレコード（`data/db/record`）↔ ドメインモデル（`domain/model`）の変換を担い、画面側にレコードを出さない
 - ViewModel は `@Observable` の `final class`
   - 画面状態: `private(set) var uiState: XxxUiState`（`struct`。Android の `StateFlow<XxxUiState>` にあたる）
-  - 一回きりのイベント（画面遷移・「元に戻す」の表示など）: `AsyncStream<XxxEvent>` を View が `.task` で受け取る（Android の `Channel` にあたる）
+  - 一回きりのイベント（「元に戻す」の表示など）: ViewModel に `EventChannel<XxxEvent>`（`util/EventChannel.swift`。Android の `Channel` にあたる）を持ち、`func events() -> AsyncStream<XxxEvent>` を View が `.task` で受け取る（AsyncStream をそのまま持つと、画面が隠れて受け取りをやめたときに終わってしまうため）
+  - 画面が出ている間の監視は、ViewModel の `func observe() async` を View の `.task` から呼ぶ（Android の repeatOnLifecycle(STARTED) にあたる）
+  - ViewModel は `AppContainer.makeXxxViewModel()` で作り、View の `@State` に持つ
 - DI はライブラリを使わず、`App/AppContainer.swift` で Repository・UseCase を作って渡す（Android の Koin のモジュールにあたる）
 - 設定値は UserDefaults（Android の DataStore にあたる）。DB に入れない
 - 日時は epoch millis（`Int64`）で保存し、表示時にフォーマットする（Android と同じ。将来のバックアップの共通化のため）
@@ -65,6 +67,9 @@ tools/                # アイコンの作り直し（icon/）、Android の訳�
 
 ## 実装ルール
 - **ナビゲーション**: Android の独自ヘッダーはまねず、iOS 標準のナビゲーションバー・TabView・コンテキストメニューを使う（`docs/requirements.md`「画面」）
+  - タブの中で開く画面は `ui/main/AppRoute.swift` に足し、`MainView` の `destination` で画面を返す。開くときはタブの `NavigationPath` に `append` する
+  - 「元に戻す」のお知らせは `.undoBanner(...)`（`ui/common/UndoBanner.swift`）、並び替えは `SortMenu`、メモの行は `MemoRow`
+- **文字列を Swift の文字列として使うとき**: `L10n.string("key")` / `L10n.format("key", 引数...)`（複数形もこれ）。SwiftUI の `Text("key")` は自動で訳される。`Label(条件 ? "a" : "b", ...)` のように三項演算子にすると訳されない文字列になるので `LocalizedStringKey("a")` と書く
 - **文字列**: ハードコード禁止。`Resources/Localizable.xcstrings`（String Catalog）に、**Android の strings.xml と同じ name をキーにして**、対応している**9言語すべて**を入れる: `en`（英語・既定）、`ja`、`es`、`pt`（ブラジルの言い回し）、`fr`、`de`、`ko`、`zh-Hant`（繁体字中国語）、`id`（インドネシア語）
   - **Android の訳の取り込み**: `python3 tools/strings/import_android_strings.py <name> ...`（9言語を一度に入れる。`%1$s` → `%1$@` などの書き換え・plurals にも対応）。iOS だけの文言は手で9言語を書く
   - Info.plist の文言（アプリ名・Face ID の説明など）は `Resources/InfoPlist.xcstrings`
@@ -88,6 +93,9 @@ tools/                # アイコンの作り直し（icon/）、Android の訳�
 - **ロック**: 端末の認証（LocalAuthentication。Face ID / Touch ID → だめならパスコード）。ロックを外している状態はアプリで1つの `LockSession`（アプリから離れたらすべてロックし直す）。ロックした中身を表示している間は、アプリの切り替え画面に中身を映さない。画面を隠すだけで暗号化はしない
 - **出力**: PDF・画像・テキスト・HTML。ファイルは一時フォルダの `exports/` に作り、共有シートで渡す
 - **テスト**: UseCase / Repository / 文字数の数え方 / HTML の変換などのロジックは単体テストを書く（DB はメモリ上の GRDB で試す）。画面の流れは UI テストで確かめる
+  - 単体テストは `IrodoriNotesTests/testutil/TestHelpers.swift` の `makeTestContainer()`（メモリ上の DB・別の保存先の UserDefaults・固定の時計）を使う。ViewModel の非同期の変化は `waitUntil { ... }` で待つ
+  - UI テストは起動の引数 `-ui-testing`（メモリ上の DB）と `-ui-test-seed <名前>`（ダミーデータ。`App/UITestSupport.swift`）を使う。シミュレーターに入っているデータには触れない
+  - ログは `AppLog.error("...")`
 
 ## ビルド確認
 ふだんの修正では、Debug のビルドと単体テスト・UI テストを、**こちら専用のシミュレーター**で行う。

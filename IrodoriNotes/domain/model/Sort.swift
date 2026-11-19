@@ -18,7 +18,7 @@ nonisolated enum FolderSortKey: String, CaseIterable, Sendable {
 /// メモ一覧の並び順。既定は更新日の新しい順。
 /// 同じ値どうしは id の大きい（新しく作った）順にして、表示順が毎回ぶれないようにする。
 /// ピン留めしたものは、並び順にかかわらず一番上にまとめる（ピン留めしたものどうしは同じ並び順）。
-nonisolated struct MemoSort: Equatable, Sendable {
+nonisolated struct MemoSort: Hashable, Sendable {
     var key: MemoSortKey = .updatedAt
     var ascending: Bool = false
 
@@ -38,7 +38,7 @@ nonisolated struct MemoSort: Equatable, Sendable {
 
 /// フォルダ一覧の並び順。既定は更新日の新しい順。
 /// 名前順は端末の言語に合わせた比較を使う。ピン留めしたものは一番上にまとめる（メモと同じ）。
-nonisolated struct FolderSort: Equatable, Sendable {
+nonisolated struct FolderSort: Hashable, Sendable {
     var key: FolderSortKey = .updatedAt
     var ascending: Bool = false
 

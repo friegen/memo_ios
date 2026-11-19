@@ -1,4 +1,3 @@
-import os
 import SwiftUI
 
 /// アプリの入り口（Android 版の MemoApplication ＋ MainActivity にあたる）。
@@ -14,7 +13,7 @@ struct IrodoriNotesApp: App {
             do {
                 try await container.makePurgeExpiredTrashUseCase()()
             } catch {
-                AppLog.app.error("ゴミ箱の期限切れの削除に失敗: \(error)")
+                AppLog.error("ゴミ箱の期限切れの削除に失敗: \(error)")
             }
         }
     }
