@@ -75,6 +75,7 @@
 | | `IrodoriNotesUITests/LaunchUITests.swift` | シミュレーターで起動して、英語・日本語でアプリ名が出るか |
 | その他 | `.gitignore`, `CLAUDE.md`, `docs/requirements.md`, `docs/steps.md` | `build/`・`xcuserdata/`・鍵や証明書はリポジトリに入れない |
 | シミュレーター | `IrodoriNotes-iPhone17`（iPhone 17 / iOS 27.2） | このプロジェクト専用に作った |
+| | `IrodoriNotes-iOS26`（iPhone 17 / iOS 26.0） | 一番古い iOS での確認用（2026-11-19 に追加） |
 
 ### 主な設定
 | 項目 | 値 | Android でいうと |
@@ -98,6 +99,7 @@
 
 ### 確認結果
 - `xcodebuild test`（専用シミュレーター、ビルドの出力は `./build`）: ビルド成功、単体テスト 2件（言語の表ごとに分けて3通り）・UI テスト 2件すべて成功
+- iOS 26.0 のシミュレーター（`IrodoriNotes-iOS26`）でも同じテストがすべて成功（2026-11-19）
 - できたアプリの Info.plist: Bundle ID `xyz.friegen.memo`、表示名 Irodori Notes、最低 iOS 18.0、iPhone だけ、9言語のフォルダ（`*.lproj`）が入っている
 
 ### ユーザーに確認してほしいこと

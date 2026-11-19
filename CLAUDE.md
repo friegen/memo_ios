@@ -82,13 +82,15 @@ IrodoriNotesUITests/  # シミュレーターで画面を動かすテスト（XC
 ふだんの修正では、Debug のビルドと単体テスト・UI テストを、**こちら専用のシミュレーター**で行う。
 ```bash
 xcodebuild test -project IrodoriNotes.xcodeproj -scheme IrodoriNotes \
-  -destination 'platform=iOS Simulator,name=IrodoriNotes-iPhone17' \
+  -destination 'platform=iOS Simulator,name=IrodoriNotes-iPhone17,OS=27.2' \
   -derivedDataPath ./build
 ```
+- ステップの終わりには、一番古い iOS のシミュレーターでも同じテストを流す: `-destination 'platform=iOS Simulator,name=IrodoriNotes-iOS26,OS=26.0'`（名前で指定するときは `OS=` も付ける。付けないと最新の iOS で探して見つからない）
 - 単体テストだけ: `-only-testing:IrodoriNotesTests` を付ける
 - ビルドの出力は必ずリポジトリの中の `./build`（`.gitignore` 済み）
-- シミュレーター `IrodoriNotes-iPhone17`（iPhone 17 / iOS 27.2）はこのプロジェクト専用。**ほかのシミュレーターは使わない・触らない**（同じ Mac で別のアプリの iOS 版を作っているため）
-- この Xcode では iOS 18 のシミュレーターをダウンロードできない（一番古いものは iOS 26.0）。iOS 18 でしか使えない書き方はコンパイラが `#available` を求めるので、それに従う
+- シミュレーター `IrodoriNotes-iPhone17`（iPhone 17 / iOS 27.2）と `IrodoriNotes-iOS26`（iPhone 17 / iOS 26.0）はこのプロジェクト専用。**ほかのシミュレーターは使わない・触らない**（同じ Mac で別のアプリの iOS 版を作っているため）
+- この Xcode では iOS 18 のシミュレーターをダウンロードできない（一番古いものは iOS 26.0）。iOS 18 では使えない書き方はコンパイラが `#available` を求めるので、それに従う
+- ユーザーは実機（iPhone）を持っていない。確認はすべてシミュレーターで行う（`docs/steps.md`「実機がないことによる制限」）
 
 ## リリース前チェック（ユーザーに頼まれたときだけ）
 - Release でビルドし、警告を確認する。AdMob の ID がテスト用のままなら直す
