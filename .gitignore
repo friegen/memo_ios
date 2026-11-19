@@ -1,0 +1,22 @@
+# ビルドの出力（xcodebuild -derivedDataPath ./build）
+build/
+DerivedData/
+
+# Xcode の個人の設定（Android の .idea/workspace.xml にあたる）
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# 鍵・証明書・プロビジョニングプロファイル（リポジトリに入れない）
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.p8
+AuthKey_*.p8
+
+# macOS
+.DS_Store
