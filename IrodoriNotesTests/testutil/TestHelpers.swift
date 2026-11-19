@@ -51,3 +51,30 @@ struct TestRepositories {
         trash = TrashRepository(database: database)
     }
 }
+
+/// 時刻を固定する時計（UseCase のテスト用）。
+final class FixedClock: AppClock, @unchecked Sendable {
+    var nowValue: Int64
+
+    init(_ now: Int64) {
+        nowValue = now
+    }
+
+    override func now() -> Int64 { nowValue }
+}
+
+/// テストごとに別の保存先の UserDefaults（アプリの設定を汚さない）。
+func makeTestDefaults() throws -> UserDefaults {
+    let suiteName = "IrodoriNotesTests-\(UUID().uuidString)"
+    let defaults = try #require(UserDefaults(suiteName: suiteName))
+    defaults.removePersistentDomain(forName: suiteName)
+    return defaults
+}
+
+/// テスト用の入れ物（メモリ上の DB・別の保存先の UserDefaults・固定の時計）。
+func makeTestContainer(now: Int64 = 0) throws -> (container: AppContainer, defaults: UserDefaults, clock: FixedClock) {
+    let defaults = try makeTestDefaults()
+    let clock = FixedClock(now)
+    let container = AppContainer(database: try AppDatabase.makeInMemory(), defaults: defaults, clock: clock)
+    return (container, defaults, clock)
+}

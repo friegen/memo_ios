@@ -7,9 +7,9 @@
 ## 進捗一覧
 | # | ステップ | 主な内容 | 状態 | コミット |
 |---|---|---|---|---|
-| 0 | プロジェクト設定 | 作り直し、iOS 18・iPhone だけ・Bundle ID・アプリ名（9言語）、テストのターゲット、専用シミュレーター、CLAUDE.md・仕様・進捗 | ✅ 完了 | |
-| 1 | データ層 | GRDB、メモ・フォルダのテーブル（ピン留め・ロックの列も最初から）、Repository、ドメインモデル、文字数、設定（UserDefaults） | 🟡 確認待ち | |
-| 2 | アプリの骨組み | AppContainer、下タブ3つ、テーマ、起動時のゴミ箱の期限切れ削除、アプリアイコン | | |
+| 0 | プロジェクト設定 | 作り直し、iOS 18・iPhone だけ・Bundle ID・アプリ名（9言語）、テストのターゲット、専用シミュレーター、CLAUDE.md・仕様・進捗 | ✅ 完了 | `eabffc3`, `e399dd7` |
+| 1 | データ層 | GRDB、メモ・フォルダのテーブル（ピン留め・ロックの列も最初から）、Repository、ドメインモデル、文字数、設定（UserDefaults） | ✅ 完了 | `d2d753a` |
+| 2 | アプリの骨組み | AppContainer、下タブ3つ、テーマ、起動時のゴミ箱の期限切れ削除、アプリアイコン・起動画面 | 🟡 確認待ち | |
 | 3 | メモタブ | 一覧、並び替え、長押しメニュー（削除・ピン留め）、元に戻す | | |
 | 4 | メモ編集（基本） | 編集画面、文字数・行数・選んだ範囲の文字数、自動保存、空のメモの確認、10万文字の上限、文字の大きさ・行間、HTML の変換（文字・改行だけ） | | |
 | 5 | メモ編集（書式） | 書式パネル（色10色・B・I・U）、HTML で保存・読み込み、貼り付けは文字だけ | | |
@@ -26,7 +26,8 @@
 - [x] 【ステップ0】CLAUDE.md・requirements.md（🟡 の項目を含む）→ おすすめどおりで OK（2026-11-19）
 - [x] 作業ブランチ → `main` に直接コミットする（push はユーザーが行う）（2026-11-19）
 - [x] 最低 iOS → **iOS 18 のまま**。確認は iOS 26.0・27.2 のシミュレーターで行う（iOS 26.0 のシミュレーターを入れてよいと了承済み）（2026-11-19）
-- [ ] 【ステップ1】下の「ステップ1」の内容の確認
+- [x] 【ステップ1】内容の確認 → OK（2026-11-19。Xcode でビルドしてアプリ名が出ることも確認）
+- [ ] 【ステップ2】下の「ステップ2」の「ユーザーに確認してほしいこと」
 - [ ] **Apple Developer Program に登録する**（年 99 ドル。Google Play の開発者登録にあたる）。シミュレーターでの開発・確認は登録なしで進められるが、App Store Connect・TestFlight・ストアへの提出には必要。ステップ13 までに。登録したらチーム ID を Claude に教える
 - 実機（iPhone）はない（2026-11-19）→ 下の「実機がないことによる制限」
 - [ ] AdMob に iOS のアプリと広告ユニットを作る（ステップ11 までに。手順は下の「AdMob でユーザーがすること」）
@@ -163,3 +164,46 @@
 ### ユーザーに確認してほしいこと
 - このステップは画面がないので、シミュレーターで触って確かめるところはない
 - 内容（上の「判断したこと」）に問題がなければ、ステップ2（アプリの骨組み: 下タブ3つ・テーマ・起動時のゴミ箱の期限切れ削除・アプリアイコン）に進む
+
+---
+
+## ステップ2: アプリの骨組み（2026-11-19）
+
+### やったこと
+| 種類 | ファイル | 内容 |
+|---|---|---|
+| 入り口 | `App/IrodoriNotesApp.swift` | 起動時にゴミ箱の期限切れ（30日）を削除（Android の MemoApplication と同じ） |
+| 入れ物 | `App/AppContainer.swift` | Repository を1つずつ作り、UseCase・ViewModel を `makeXxx()` で作る（Android の Koin のモジュールにあたる）。ログ（`AppLog`） |
+| メイン画面 | `ui/main/MainView.swift`, `MainViewModel.swift` | 下タブ3つ（メモ / フォルダ / 設定）。タブごとに画面の積み重ね（NavigationStack）を持ち、タブを押すといつもトップに戻す（Android v1.8） |
+| テーマ | `ui/common/ThemeModes.swift` | 設定のテーマ（端末に従う／ライト／ダーク）をウィンドウに反映。設定画面はステップ8 |
+| UseCase | `domain/usecase/PurgeExpiredTrashUseCase.swift`, `GetThemeModeUseCase.swift`, `ObserveThemeModeUseCase.swift` | ゴミ箱の期限切れ削除、テーマの読み込み・監視 |
+| タブの画面（仮） | `ui/memolist/MemoListScreen.swift`, `ui/folderlist/FolderListScreen.swift`, `ui/settings/SettingsScreen.swift` | タイトルだけの空の画面。中身は各ステップで作る |
+| アイコン | `Resources/Assets.xcassets/AppIcon.appiconset` | 通常・ダーク・色付き（tinted）の 1024×1024 |
+| 起動画面 | `Config/Info.plist`, `Assets.xcassets/LaunchLogo.imageset`, `LaunchBackground.colorset` | 背景（ライト 白 / ダーク 黒）の中央にロゴ（Android の起動画面と同じく薄い青の丸の上） |
+| 色 | `Assets.xcassets/AccentColor.colorset` | アクセントカラー（ボタン・選択中のタブの色）を Android の brand_primary に（ライト #0A6CD6 / ダーク #3D95F5） |
+| 文字列 | `Localizable.xcstrings` | タブ名（`tab_memo`・`tab_folder`・`tab_settings`）9言語 |
+| ツール | `tools/icon/`（`make_svgs.py`・`render.swift`・`README.md`） | Android のアイコンのベクターを SVG に書き直し、PNG に描く。絵を直すときはここから作り直す |
+| | `tools/strings/import_android_strings.py` | Android の strings.xml（9言語）から指定した name を String Catalog に取り込む（`%1$s` → `%1$@` などの書き換え、plurals にも対応） |
+
+### 判断したこと
+- **アイコンは Android のベクターから描き直した**: 512px の PNG を拡大するとぼやけるため。図形・色・グラデーションは Android と同じで、iOS は角を丸めるだけなので絵を大きめにした（`tools/icon/make_svgs.py` の `VIEW`）
+  - App Store のアイコンは透明の情報（アルファ）を持てないので、通常のアイコンはアルファなしで書き出す
+  - 途中で見つけた不具合: アルファなしで書き出すと絵が描かれず真っ黒になっていた（ホーム画面で黒い四角）。アルファ付きで描いてから外すように直した
+- **ダークのアイコンは背景を透明に**: iOS が暗い背景を敷く。**色付き（tinted）**は Android の1色版（テーマアイコン）と同じ形を白で描き、iOS が色を付ける
+- **起動画面は Info.plist に書く**: ビルドの設定（`INFOPLIST_KEY_*`）では起動画面のロゴを指定できないため、`Config/Info.plist` に書き、ほかの項目はこれまでどおりビルドの設定から作る（Xcode が合わせる）
+- **テーマはウィンドウの設定で反映**: SwiftUI の `.preferredColorScheme` は「端末に従う」に戻したときに前のテーマが残ることがあるため、ウィンドウの `overrideUserInterfaceStyle` を直接変える（シート・アラート・UIKit の部品にも効く）。起動直後から保存したテーマで出る（ちらつかない）ように、最初の値はすぐに読む
+- **タブの画面のタイトルは中央に小さく**（iOS の大きいタイトルにしない）: Android のヘッダーと同じ見た目にするため
+- **タブのアイコン**: iOS の標準のアイコン（SF Symbols。Android の Material Icons にあたる。ライセンスの一覧に載せる必要はない）の note.text・folder・gearshape
+
+### 確認結果
+- 単体テスト 74件・UI テスト 2件すべて成功（iOS 27.2・iOS 26.0）、ビルドの警告なし
+  - 追加: `PurgeExpiredTrashUseCaseTests`（30日を過ぎたものだけ消える）、`MainViewModelTests`（保存したテーマで始まる・設定が変わると追従する）、`LaunchUITests`（タブが3つあり押すと切り替わる・日本語のタブ名）
+- シミュレーターの画面を撮って確認: タブ（日本語・ライト）、端末がライトでもアプリの設定がダークならダーク（設定は起動の引数 `-theme_mode DARK` で指定）、ホーム画面のアイコン、起動画面（ダーク）
+
+### ユーザーに確認してほしいこと（Xcode でシミュレーター `IrodoriNotes-iPhone17` に入れて）
+1. **ホーム画面のアイコン**: 前に入れたアプリが残っていると古い（空の）アイコンのままのことがあるので、シミュレーターのアイコンを長押し →「アプリを削除」してから ▶ で入れ直す
+   - ダーク・色付きのアイコン: ホーム画面の何もないところを長押し → 左上の「編集」→「カスタマイズ」→ 下の「ダーク」「色付き」を選ぶ
+2. **起動画面**: アプリを起動した瞬間に、白（ダークなら黒）の背景の中央に薄い青の丸とロゴが出る（一瞬で消える）
+   - シミュレーターのダークモード: メニューの Features ＞ Toggle Appearance（⇧⌘A）
+3. **下タブ**: メモ・フォルダ・設定の3つ（アイコンと文字）。押すと画面のタイトルが変わる。ライト・ダークで見やすいか
+4. テーマの切り替え（設定画面）はステップ8で作るので、まだ確かめられない

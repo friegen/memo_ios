@@ -42,7 +42,7 @@ Android 版の「5. 将来対応」「機能の候補」にあるものは作ら
 ## フォルダ構成
 ```
 IrodoriNotes/
-├── App/              # 入り口（IrodoriNotesApp）、AppContainer、下タブ
+├── App/              # 入り口（IrodoriNotesApp）、AppContainer（Koin のモジュールにあたる）
 ├── ads/              # 広告（AdMob・UMP・ATT）。出し方の決まりは domain/model/AdPolicy.swift
 ├── data/
 │   ├── db/           # AppDatabase（GRDB）、record/
@@ -53,22 +53,29 @@ IrodoriNotes/
 │   └── usecase/      # 具象 UseCase
 ├── ui/
 │   ├── common/       # 共通の部品
+│   ├── main/         # 下タブ（MainView）
 │   ├── memolist/ folderlist/ folderdetail/ settings/ trash/ editor/
 ├── util/             # 文字数・HTML の変換など
 └── Resources/        # Assets.xcassets、Localizable.xcstrings、InfoPlist.xcstrings
 IrodoriNotesTests/    # 単体テスト（Swift Testing。Android の src/test にあたる）
 IrodoriNotesUITests/  # シミュレーターで画面を動かすテスト（XCTest。Android の androidTest にあたる）
+Config/Info.plist     # ビルドの設定で書けない Info.plist の項目
+tools/                # アイコンの作り直し（icon/）、Android の訳の取り込み（strings/）
 ```
 
 ## 実装ルール
 - **ナビゲーション**: Android の独自ヘッダーはまねず、iOS 標準のナビゲーションバー・TabView・コンテキストメニューを使う（`docs/requirements.md`「画面」）
 - **文字列**: ハードコード禁止。`Resources/Localizable.xcstrings`（String Catalog）に、**Android の strings.xml と同じ name をキーにして**、対応している**9言語すべて**を入れる: `en`（英語・既定）、`ja`、`es`、`pt`（ブラジルの言い回し）、`fr`、`de`、`ko`、`zh-Hant`（繁体字中国語）、`id`（インドネシア語）
+  - **Android の訳の取り込み**: `python3 tools/strings/import_android_strings.py <name> ...`（9言語を一度に入れる。`%1$s` → `%1$@` などの書き換え・plurals にも対応）。iOS だけの文言は手で9言語を書く
   - Info.plist の文言（アプリ名・Face ID の説明など）は `Resources/InfoPlist.xcstrings`
   - 足し忘れは `LocalizationTests` が失敗する。言語によらず同じもの（記号など）はキーを作らない
   - 数を含む文言は String Catalog の複数形（plural）。スペイン語・ポルトガル語・フランス語は one / many / other、ドイツ語は one / other、韓国語・中国語・インドネシア語は other だけ（Android と同じ）
   - Android の `%1$s` / `%1$d` は iOS では `%1$@` / `%1$lld` にする
   - フランス語は ? ! : ; » の前と « の後に改行しない空白（U+00A0）を入れる
 - **色**: `Assets.xcassets` の色（ライト・ダーク両方の値を持つ）を使う。ライト・ダーク両方で見える色にする
+- **Info.plist**（Android の AndroidManifest.xml にあたる）: 基本はビルドの設定（`INFOPLIST_KEY_*`）に書く。そこで書けないもの（起動画面など）だけ `Config/Info.plist` に書く
+- **アイコン・起動画面のロゴ**: `tools/icon/`（Android のベクターを SVG に書き直したもの）から作る。手順は `tools/icon/README.md`
+- **テーマ**: `ui/common/ThemeModes.swift` の `WindowThemeApplier` でウィンドウに反映する（`.preferredColorScheme` は使わない）
 - **DB（GRDB）**: スキーマの変更は `DatabaseMigrator` に新しいマイグレーションを足す（消して作り直す設定 `eraseDatabaseOnSchemaChange` は使わない）。ただし**未リリースの間**は、Android と同じく最初のマイグレーションを書き換えてよい（確認するときはシミュレーターのアプリを消してから）
 - **削除**: メモ・フォルダの削除は `deletedAt` を立てるソフトデリート。一覧のクエリでは `deletedAt IS NULL` を必ず条件に入れる
 - **一覧で本文を読まない**: メモの一覧は1行目・文字数・日時だけを読む。本文（html / plainText）を読むのは編集画面用の1件取得だけ（Android と同じ。長いメモで一覧が重くならないように）

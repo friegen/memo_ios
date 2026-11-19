@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    Info.plist（Android の AndroidManifest.xml にあたる）のうち、ビルドの設定（INFOPLIST_KEY_*）では書けないものだけをここに書く。
+    ほかの項目は Xcode がビルドの設定から作って、このファイルと合わせる（GENERATE_INFOPLIST_FILE = YES）。
+-->
+<plist version="1.0">
+<dict>
+	<!-- 起動画面（Android の Splash Screen にあたる。止まった絵だけ）: 背景色とロゴ -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>LaunchLogo</string>
+	</dict>
+</dict>
+</plist>
