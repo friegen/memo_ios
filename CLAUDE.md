@@ -18,6 +18,8 @@ Android 版の「5. 将来対応」「機能の候補」にあるものは作ら
   - スキームは共有スキーム（`xcshareddata/xcschemes/IrodoriNotes.xcscheme`）。ターゲットを足したら `BlueprintIdentifier`（= ターゲットの `id`）も合わせる
 - UI は **SwiftUI**。メモの編集欄だけ UIKit の `UITextView` を `UIViewRepresentable` で包む（Android でいう「Compose に AndroidView で EditText を埋める」）
 - ライブラリは Swift Package Manager で入れる（Android の Gradle の依存にあたる）: GRDB（DB）、Google Mobile Ads・UMP（広告）
+  - `project.xcproj` の書き方: プロジェクトの `"packages"` に `{ "kind": "remote", "repository": "<URL>", "version": { "up-to-next-major-version": "<版>" } }`、ターゲットの `"package-product-members"` に `{ "package": "<リポジトリ名>", "product-name": "<製品名>", "build-phase": { "build-phase": "frameworks" } }`
+  - 入った版は `IrodoriNotes.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`（コミットする）。パッケージを足したら `Resources/licenses.json` にも足す（`LicensesTests` が確かめる）
 - **ビルド構成**（Android の flavor にあたる）: `Debug`（開発用。AdMob は**テスト用の ID**）/ `Release`（ストア用。AdMob の本物の ID）。開発中・シミュレーター・実機の確認では必ず Debug を使う（本物の広告をタップするとアカウントが止まることがある）
 - 作業ブランチ: `main`（2026-11-19 にユーザーが指定）。push はユーザーが行う
 
@@ -34,6 +36,8 @@ Android 版の「5. 将来対応」「機能の候補」にあるものは作ら
 - DI はライブラリを使わず、`App/AppContainer.swift` で Repository・UseCase を作って渡す（Android の Koin のモジュールにあたる）
 - 設定値は UserDefaults（Android の DataStore にあたる）。DB に入れない
 - 日時は epoch millis（`Int64`）で保存し、表示時にフォーマットする（Android と同じ。将来のバックアップの共通化のため）
+- **並行処理**: 何も書かなければメインスレッドで動く設定。DB の中で使う型（レコード・DAO・ドメインモデル・`CharCounter` など）には `nonisolated` を付けて、別スレッドでも使えるようにする（DB の読み書きは GRDB が別スレッドで行う）
+- DAO は `enum XxxDao` の static 関数（`(_ db: Database, ...)` を受け取り、SQL を書く）。Repository は `AppDatabase` を受け取り、`database.writer.write { db in ... }`（トランザクション）の中で DAO を呼ぶ
 
 ## フォルダ構成
 ```

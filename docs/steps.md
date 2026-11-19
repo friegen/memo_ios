@@ -8,10 +8,10 @@
 | # | ステップ | 主な内容 | 状態 | コミット |
 |---|---|---|---|---|
 | 0 | プロジェクト設定 | 作り直し、iOS 18・iPhone だけ・Bundle ID・アプリ名（9言語）、テストのターゲット、専用シミュレーター、CLAUDE.md・仕様・進捗 | ✅ 完了 | |
-| 1 | データ層 | GRDB、メモ・フォルダのテーブル（ピン留め・ロックの列も最初から）、Repository、ドメインモデル、文字数、HTML 変換、設定（UserDefaults） | | |
+| 1 | データ層 | GRDB、メモ・フォルダのテーブル（ピン留め・ロックの列も最初から）、Repository、ドメインモデル、文字数、設定（UserDefaults） | 🟡 確認待ち | |
 | 2 | アプリの骨組み | AppContainer、下タブ3つ、テーマ、起動時のゴミ箱の期限切れ削除、アプリアイコン | | |
 | 3 | メモタブ | 一覧、並び替え、長押しメニュー（削除・ピン留め）、元に戻す | | |
-| 4 | メモ編集（基本） | 編集画面、文字数・行数・選んだ範囲の文字数、自動保存、空のメモの確認、10万文字の上限、文字の大きさ・行間 | | |
+| 4 | メモ編集（基本） | 編集画面、文字数・行数・選んだ範囲の文字数、自動保存、空のメモの確認、10万文字の上限、文字の大きさ・行間、HTML の変換（文字・改行だけ） | | |
 | 5 | メモ編集（書式） | 書式パネル（色10色・B・I・U）、HTML で保存・読み込み、貼り付けは文字だけ | | |
 | 6 | フォルダタブ | 一覧（色付き）、作成・編集のシート、削除の確認、並び替え、ピン留め | | |
 | 7 | フォルダの中 | フォルダとメモの一覧、5階層、パンくず、移動 | | |
@@ -26,6 +26,7 @@
 - [x] 【ステップ0】CLAUDE.md・requirements.md（🟡 の項目を含む）→ おすすめどおりで OK（2026-11-19）
 - [x] 作業ブランチ → `main` に直接コミットする（push はユーザーが行う）（2026-11-19）
 - [x] 最低 iOS → **iOS 18 のまま**。確認は iOS 26.0・27.2 のシミュレーターで行う（iOS 26.0 のシミュレーターを入れてよいと了承済み）（2026-11-19）
+- [ ] 【ステップ1】下の「ステップ1」の内容の確認
 - [ ] **Apple Developer Program に登録する**（年 99 ドル。Google Play の開発者登録にあたる）。シミュレーターでの開発・確認は登録なしで進められるが、App Store Connect・TestFlight・ストアへの提出には必要。ステップ13 までに。登録したらチーム ID を Claude に教える
 - 実機（iPhone）はない（2026-11-19）→ 下の「実機がないことによる制限」
 - [ ] AdMob に iOS のアプリと広告ユニットを作る（ステップ11 までに。手順は下の「AdMob でユーザーがすること」）
@@ -114,3 +115,51 @@
    - A. iOS 18 のまま（おすすめ）: 使える人が一番多い。iOS 18 での見た目・動きは確かめられないので、確認は iOS 26・27 のシミュレーターで行い、iOS 18 はコンパイラの確認に任せる。iOS 18 の iPhone が手元にあれば、それで確かめてもらう
    - B. iOS 26 にする: 一番古い iOS でもシミュレーターで確かめられる。そのぶん iPhone XS・XR（iOS 26 に上げられない機種）の人は使えない
    - どちらの場合も、iOS 26.0 のシミュレーター（約 8GB）を入れてよければ、一番古い iOS での確認に使う
+
+---
+
+## ステップ1: データ層（2026-11-19）
+
+### やったこと
+| 種類 | ファイル | 内容 |
+|---|---|---|
+| ライブラリ | `IrodoriNotes.xcodeproj/project.xcproj` | GRDB 7.12.0 を Swift Package Manager で追加（7.x の範囲で更新する）。入っている版は `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`（Android の依存の版を固定するファイルにあたる。コミットする） |
+| DB | `data/db/AppDatabase.swift` | GRDB（SQLite）。ファイルは `Library/Application Support/memo.sqlite`。最初のマイグレーション "v1" で memos・folders を作る。DB の変化を流す `observe`（Room の Flow にあたる） |
+| レコード | `data/db/record/MemoRecord.swift`, `FolderRecord.swift` | テーブルの1行（Room の Entity にあたる）。一覧用の `MemoSummaryRow`（本文を読まない）、件数付きのフォルダ |
+| DAO | `data/db/dao/MemoDao.swift`, `FolderDao.swift` | SQL（Android の DAO と同じ SQL）。一覧・作成・更新・移動・ゴミ箱・完全削除 |
+| Repository | `data/repository/MemoRepository.swift` | 有効なメモの取得・作成・更新・元に戻す・移動・ゴミ箱へ・ロック・ピン留め |
+| | `FolderRepository.swift` | 有効なフォルダの取得・作成（5階層まで）・名前と色の変更・中身の件数・中身ごとゴミ箱へ・移動先の一覧・ロック・ピン留め |
+| | `TrashRepository.swift` | ゴミ箱の一覧・復元（上の階層ごと）・完全削除・空にする・30日たったものの削除 |
+| | `SettingsRepository.swift`, `data/settings/SettingsKeys.swift` | テーマ・文字の大きさ・行間・並び順3つ（UserDefaults。Android の DataStore にあたる） |
+| | `FolderTree.swift`, `Mappers.swift` | 階層をたどる補助、レコード → ドメインモデルの変換 |
+| ドメインモデル | `domain/model/` | `Memo`・`MemoSummary`・`Folder`・`FolderColor`・`MemoSort`・`FolderSort`・`TrashItem`・`ThemeMode`・`FontSizeLevel`・`LineSpacingLevel`・`EditorSettings` と、決まりごと（`MemoPolicy`・`FolderPolicy`・`TrashPolicy`） |
+| ユーティリティ | `util/CharCounter.swift`, `util/AppClock.swift` | 文字数・行数・1行目、現在時刻 |
+| ライセンス | `Resources/licenses.json` | オープンソースライセンスの一覧（今は GRDB だけ）。画面はステップ8 |
+
+### 判断したこと
+- **テーブル・列・保存する値は Android と同じ**: 列の名前・型、色の名前（red など）、並び順やテーマの保存名（`UPDATED_AT`・`DARK` など）、設定のキー（`theme_mode` など）をそろえた。将来バックアップを Android と共通にしやすくするため（テストで確かめている）
+- **DAO は `enum` の中の関数（SQL を書く）**: Android の DAO の SQL をそのまま移せて、見比べやすいため。Repository は DB（`AppDatabase`）だけを受け取る。UseCase・Repository に protocol は作っていない
+- **一覧で本文を読まない決まりも同じ**: iOS の SQLite には Android の「1行 約2MB」の上限はないが、一覧が重くならないように同じ作りにした
+- **データの型はメインスレッドに縛らない**（`nonisolated`）: このプロジェクトは「何も書かなければメインスレッドで動く」設定なので、DB の中で使う型（レコード・ドメインモデルなど）にだけ印を付けて、DB の処理を別スレッドで動かせるようにした（Android の Dispatchers.IO にあたる）
+- **設定の変化の監視**: UserDefaults が変わったときの知らせ（`UserDefaults.didChangeNotification`）を受けて、値が変わったときだけ流す（Android の DataStore の Flow ＋ distinctUntilChanged と同じ動き）
+- **名前の並び順**: 端末の言語に合わせた比べ方（Android の Collator にあたる `String.compare(_:locale:)`）
+- **時刻**: `AppClock` は、テストで継承して時刻を固定できるようにした（protocol は使わない）
+- **HTML の変換はステップ4・5に回した**: 画面（UITextView の装飾）とつながる部分が多いため。Android もステップ4・5で作っている
+- **ライセンスの一覧は手で管理し、テストで足し忘れを見つける**: `Package.resolved` に載っているパッケージが `licenses.json` にすべてあるかを `LicensesTests` が確かめる
+
+### 確認結果
+- 単体テスト 70件すべて成功（iOS 27.2・iOS 26.0 の両方のシミュレーター）、UI テスト 2件も成功。ビルドの警告なし
+| テスト | 件数 | 主な内容 |
+|---|---|---|
+| `CharCounterTests` | 10 | 改行を数えない（\r\n・\r・\n）、絵文字（ZWJ・国旗・肌の色・異体字セレクタ）、結合文字、行数、1行目、上限の位置（UTF-16） |
+| `SortTests` | 9 | 各並び順・昇順降順、同じ値の順、日本語の名前順、ピン留めが上、色の名前が Android と同じ |
+| `MemoRepositoryTests` | 13 | 作成・更新・同じ内容なら何もしない・元に戻す・移動・ゴミ箱へ・ロック・ピン留め・フォルダの更新日・約120万文字のメモがあっても一覧が出る・DB が変わると一覧に流れる |
+| `FolderRepositoryTests` | 10 | フォルダタブ直下と中のフォルダ、件数、階層のパス、5階層の上限、上の階層の更新日、名前と色の変更、中身ごとゴミ箱へ、移動先の一覧 |
+| `TrashRepositoryTests` | 15 | Android の TrashRepositoryTest と同じ各パターン（フォルダごとの復元・先に単体で削除したものは残る・上の階層ごとの復元・完全削除・空にする・30日） |
+| `SettingsRepositoryTests` | 6 | 既定値、保存、並び順3つが別々、不正な値は既定値、保存する名前が Android と同じ、変わったときだけ流れる |
+| `AppDatabaseTests` | 3 | 列が Android と同じ、フォルダの完全削除で中身も消える、ファイルの DB を作れる |
+| `LicensesTests` | 2 | 使っているパッケージがライセンスの一覧にすべてあり、全文がある |
+
+### ユーザーに確認してほしいこと
+- このステップは画面がないので、シミュレーターで触って確かめるところはない
+- 内容（上の「判断したこと」）に問題がなければ、ステップ2（アプリの骨組み: 下タブ3つ・テーマ・起動時のゴミ箱の期限切れ削除・アプリアイコン）に進む
