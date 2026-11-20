@@ -4,11 +4,12 @@ import SwiftUI
 struct MemoListScreen: View {
     @Binding var path: NavigationPath
     @State private var viewModel: MemoListViewModel
-    @State private var undoItem: UndoItem?
+    @Bindable private var messageCenter: MessageCenter
 
     init(container: AppContainer, path: Binding<NavigationPath>) {
         _path = path
         _viewModel = State(initialValue: container.makeMemoListViewModel())
+        messageCenter = container.messageCenter
     }
 
     var body: some View {
@@ -46,7 +47,7 @@ struct MemoListScreen: View {
                 .accessibilityIdentifier("add_button")
             }
         }
-        .undoBanner($undoItem)
+        .undoBanner($messageCenter.item)
         .task { await viewModel.observe() }
         .task {
             for await event in viewModel.events() { handle(event) }
@@ -71,7 +72,7 @@ struct MemoListScreen: View {
     private func handle(_ event: MemoListEvent) {
         switch event {
         case .showMovedToTrash(let memoId):
-            undoItem = UndoItem(message: L10n.string("memo_moved_to_trash")) {
+            messageCenter.show(L10n.string("memo_moved_to_trash")) {
                 Task { await viewModel.onUndoDelete(memoId: memoId) }
             }
         }

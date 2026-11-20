@@ -7,7 +7,7 @@ Android 版の strings.xml（9言語）から、指定した name の文字列�
 - 取り込み元: Android 版の読む専用のコピー（ANDROID_RES）。取り込み先: IrodoriNotes/Resources/Localizable.xcstrings
 - キーは Android の name と同じ。すでにあるキーは上書きする
 - Android の書き方を iOS に合わせる: %1$s → %1$@、%1$d → %1$lld、\\n → 改行、\\' → '、前後の "..." を外す
-- plurals は String Catalog の複数形（plural）にする
+- plurals は String Catalog の複数形（plural）にする。中の %s は数値の %lld にする（L10n.count で3桁区切りを付ける）
 - translatable="false" のものは英語の値を全言語に入れる（LocalizationTests が全言語にキーがあることを確かめるため）
 """
 import json
@@ -50,7 +50,10 @@ def load(folder: str):
             if element.get("translatable") == "false":
                 untranslatable.add(name)
         elif element.tag == "plurals":
-            plurals[name] = {item.get("quantity"): convert(element_text(item)) for item in element}
+            # iOS の複数形は数そのもの（数値）で one / other を選ぶので、Android で書式済みの数を入れていた %s も数値（%lld）にする。
+            # 3桁区切りは Swift 側（L10n.count）で付ける
+            plurals[name] = {item.get("quantity"): convert(element_text(item)).replace("%@", "%lld").replace("$@", "$lld")
+                             for item in element}
     return strings, plurals, untranslatable
 
 

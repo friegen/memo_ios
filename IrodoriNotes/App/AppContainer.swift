@@ -14,6 +14,9 @@ final class AppContainer {
     let trashRepository: TrashRepository
     let settingsRepository: SettingsRepository
 
+    /// アプリ全体のお知らせ（「ゴミ箱に移動しました［元に戻す］」など）
+    let messageCenter = MessageCenter()
+
     init(database: AppDatabase, defaults: UserDefaults = .standard, clock: AppClock = AppClock()) {
         self.database = database
         self.clock = clock
@@ -71,6 +74,26 @@ final class AppContainer {
         SetMemoPinnedUseCase(memoRepository: memoRepository)
     }
 
+    func makeGetMemoUseCase() -> GetMemoUseCase {
+        GetMemoUseCase(memoRepository: memoRepository)
+    }
+
+    func makeSaveMemoUseCase() -> SaveMemoUseCase {
+        SaveMemoUseCase(memoRepository: memoRepository, clock: clock)
+    }
+
+    func makeRevertMemoUseCase() -> RevertMemoUseCase {
+        RevertMemoUseCase(memoRepository: memoRepository)
+    }
+
+    func makeDiscardMemoUseCase() -> DiscardMemoUseCase {
+        DiscardMemoUseCase(trashRepository: trashRepository)
+    }
+
+    func makeObserveEditorSettingsUseCase() -> ObserveEditorSettingsUseCase {
+        ObserveEditorSettingsUseCase(settingsRepository: settingsRepository)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
@@ -84,6 +107,18 @@ final class AppContainer {
             moveMemoToTrash: makeMoveMemoToTrashUseCase(),
             restoreMemo: makeRestoreMemoUseCase(),
             setMemoPinned: makeSetMemoPinnedUseCase())
+    }
+
+    func makeMemoEditViewModel(memoId: Int64?, folderId: Int64?) -> MemoEditViewModel {
+        MemoEditViewModel(
+            memoId: memoId,
+            folderId: folderId,
+            getMemo: makeGetMemoUseCase(),
+            saveMemo: makeSaveMemoUseCase(),
+            moveMemoToTrash: makeMoveMemoToTrashUseCase(),
+            revertMemo: makeRevertMemoUseCase(),
+            discardMemo: makeDiscardMemoUseCase(),
+            observeEditorSettings: makeObserveEditorSettingsUseCase())
     }
 }
 

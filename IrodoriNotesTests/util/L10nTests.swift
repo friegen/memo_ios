@@ -35,4 +35,16 @@ struct L10nTests {
         #expect(L10n.format("memo_created_at", "X", bundle: try bundle("en")) == "Created X")
         #expect(L10n.format("memo_created_at", "X", bundle: try bundle("ja")) == "作成日 X")
     }
+
+    /// 数を3桁ごとに区切る（Android の getQuantityString に書式済みの数を渡すのと同じ見た目）。
+    @Test func countGroupsDigits() throws {
+        let en = try bundle("en")
+        let english = Locale(identifier: "en_US")
+        #expect(L10n.count("editor_char_count", 12_345, bundle: en, locale: english, numberLocale: english) == "12,345 characters")
+        #expect(L10n.count("editor_char_count", 1, bundle: en, locale: english, numberLocale: english) == "1 character")
+        #expect(L10n.count("editor_line_count", 3, bundle: try bundle("ja"), locale: Locale(identifier: "ja_JP"),
+                           numberLocale: Locale(identifier: "ja_JP")) == "3行")
+        #expect(L10n.count("editor_char_count", 12_345, bundle: try bundle("de"), locale: Locale(identifier: "de_DE"),
+                           numberLocale: Locale(identifier: "de_DE")) == "12.345 Zeichen")
+    }
 }

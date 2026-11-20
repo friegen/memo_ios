@@ -17,4 +17,13 @@ nonisolated enum L10n {
         let locale = locale ?? bundle.preferredLocalizations.first.map(Locale.init(identifier:)) ?? .current
         return String(format: string(key, bundle: bundle), locale: locale, arguments: arguments)
     }
+
+    /// 数の入った複数形の訳で、数を3桁ごとに区切って出す（例: "12,345 characters"。Android の getQuantityString に書式済みの数を渡すのと同じ見た目）。
+    /// 区切り文字は端末の言語・地域に合わせる。
+    static func count(_ key: String, _ count: Int, bundle: Bundle = .main, locale: Locale? = nil, numberLocale: Locale = .current) -> String {
+        let text = format(key, count, bundle: bundle, locale: locale)
+        let grouped = count.formatted(.number.locale(numberLocale))
+        guard let range = text.range(of: String(count)) else { return text }
+        return text.replacingCharacters(in: range, with: grouped)
+    }
 }

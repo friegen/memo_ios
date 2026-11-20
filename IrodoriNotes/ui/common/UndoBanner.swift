@@ -16,7 +16,13 @@ extension View {
                 UndoBanner(item: current) { item.wrappedValue = nil }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .task(id: current.id) {
-                        try? await Task.sleep(for: .seconds(3))
+                        // 画面が閉じて待ちが打ち切られたときは消さない（次に出る画面のお知らせとして残す。
+                        // 例: 編集画面で削除 → 一覧に「ゴミ箱に移動しました」）
+                        do {
+                            try await Task.sleep(for: .seconds(3))
+                        } catch {
+                            return
+                        }
                         if item.wrappedValue?.id == current.id { item.wrappedValue = nil }
                     }
             }

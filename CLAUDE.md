@@ -68,8 +68,9 @@ tools/                # アイコンの作り直し（icon/）、Android の訳�
 ## 実装ルール
 - **ナビゲーション**: Android の独自ヘッダーはまねず、iOS 標準のナビゲーションバー・TabView・コンテキストメニューを使う（`docs/requirements.md`「画面」）
   - タブの中で開く画面は `ui/main/AppRoute.swift` に足し、`MainView` の `destination` で画面を返す。開くときはタブの `NavigationPath` に `append` する
-  - 「元に戻す」のお知らせは `.undoBanner(...)`（`ui/common/UndoBanner.swift`）、並び替えは `SortMenu`、メモの行は `MemoRow`
-- **文字列を Swift の文字列として使うとき**: `L10n.string("key")` / `L10n.format("key", 引数...)`（複数形もこれ）。SwiftUI の `Text("key")` は自動で訳される。`Label(条件 ? "a" : "b", ...)` のように三項演算子にすると訳されない文字列になるので `LocalizedStringKey("a")` と書く
+  - お知らせ（「元に戻す」付きも）は `container.messageCenter.show(...)`（`ui/common/MessageCenter.swift`）で出し、画面は `.undoBanner($messageCenter.item)` で表示する（画面をまたいで出せる）。並び替えは `SortMenu`、メモの行は `MemoRow`
+  - ナビゲーションバーの中央に自前の表示（`.principal`）を置くと iOS 26.0 で出ないので、iOS 26 以上は `.navigationTitle` ＋ `.navigationSubtitle` を使う（`MemoEditScreen` の `EditorHeader`）
+- **文字列を Swift の文字列として使うとき**: `L10n.string("key")` / `L10n.format("key", 引数...)`。数の入った複数形は `L10n.count("key", 数)`（3桁区切りも付く）。SwiftUI の `Text("key")` は自動で訳される。`Label(条件 ? "a" : "b", ...)` のように三項演算子にすると訳されない文字列になるので `LocalizedStringKey("a")` と書く
 - **文字列**: ハードコード禁止。`Resources/Localizable.xcstrings`（String Catalog）に、**Android の strings.xml と同じ name をキーにして**、対応している**9言語すべて**を入れる: `en`（英語・既定）、`ja`、`es`、`pt`（ブラジルの言い回し）、`fr`、`de`、`ko`、`zh-Hant`（繁体字中国語）、`id`（インドネシア語）
   - **Android の訳の取り込み**: `python3 tools/strings/import_android_strings.py <name> ...`（9言語を一度に入れる。`%1$s` → `%1$@` などの書き換え・plurals にも対応）。iOS だけの文言は手で9言語を書く
   - Info.plist の文言（アプリ名・Face ID の説明など）は `Resources/InfoPlist.xcstrings`

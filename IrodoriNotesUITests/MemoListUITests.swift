@@ -99,12 +99,12 @@ final class MemoListUITests: XCTestCase {
         XCTAssertTrue(target.waitForExistence(timeout: 10))
 
         target.tap()
-        XCTAssertTrue(app.otherElements["memo_editor"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textViews["memo_text"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.tabBars.firstMatch.isHittable) // 編集画面では下タブを隠す
         app.navigationBars.buttons.firstMatch.tap() // 戻る
 
         XCTAssertTrue(app.buttons["add_button"].waitForExistence(timeout: 5))
         app.buttons["add_button"].tap()
-        XCTAssertTrue(app.otherElements["memo_editor"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textViews["memo_text"].waitForExistence(timeout: 5))
     }
 }

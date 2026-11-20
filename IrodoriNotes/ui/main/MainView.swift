@@ -50,7 +50,7 @@ struct MainView: View {
     private func destination(_ route: AppRoute) -> some View {
         switch route {
         case .editor(let memoId, let folderId):
-            MemoEditScreen(memoId: memoId, folderId: folderId)
+            MemoEditScreen(container: container, memoId: memoId, folderId: folderId)
         }
     }
 
