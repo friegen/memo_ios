@@ -6,7 +6,7 @@ import GRDB
 ///
 /// UI テストは起動の引数で次を指定する:
 /// - `-ui-testing`: メモリ上の DB と、空の別の保存先の設定を使う（シミュレーターに入っているデータを使わない・消さない）
-/// - `-ui-test-seed memos`: ダミーのメモを入れて起動する
+/// - `-ui-test-seed memos` / `folders`: ダミーのメモ・フォルダを入れて起動する
 enum UITestSupport {
     static let uiTestingArgument = "-ui-testing"
     static let seedArgument = "-ui-test-seed"
@@ -46,6 +46,21 @@ enum UITestSupport {
                         firstLine: CharCounter.firstLine(text, maxChars: MemoPolicy.firstLineMaxChars),
                         charCount: CharCounter.countChars(text), createdAt: created, updatedAt: updated))
                 }
+            }
+        case "folders":
+            try database.writer.write { db in
+                // 更新日の新しい順: Hobby（中にメモ1件）→ Work（空）→ Recipes（中にフォルダ1つ）
+                func folder(_ name: String, _ color: FolderColor, _ parent: Int64?, _ time: Int64) throws -> Int64 {
+                    try FolderDao.insert(db, FolderRecord(
+                        parentId: parent, name: name, colorKey: color.rawValue, createdAt: time, updatedAt: time))
+                }
+                let recipes = try folder("Recipes", .default, nil, base)
+                _ = try folder("Sweets", .pink, recipes, base)
+                _ = try folder("Work", .red, nil, base + hour)
+                let hobby = try folder("Hobby", .blue, nil, base + 2 * hour)
+                _ = try MemoDao.insert(db, MemoRecord(
+                    folderId: hobby, html: "Books to read", plainText: "Books to read", firstLine: "Books to read",
+                    charCount: 11, createdAt: base + 2 * hour, updatedAt: base + 2 * hour))
             }
         default:
             fatalError("知らないダミーデータ: \(name)")

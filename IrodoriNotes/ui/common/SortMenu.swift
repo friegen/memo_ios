@@ -17,6 +17,18 @@ let memoSortOptions: [SortOption<MemoSort>] = [
     SortOption(label: "sort_chars_asc", value: MemoSort(key: .charCount, ascending: true)),
 ]
 
+/// フォルダ一覧（フォルダタブ・フォルダの中のフォルダ）の並び替えの選択肢（Android 版と同じ8つ）。
+let folderSortOptions: [SortOption<FolderSort>] = [
+    SortOption(label: "sort_updated_desc", value: FolderSort(key: .updatedAt, ascending: false)),
+    SortOption(label: "sort_updated_asc", value: FolderSort(key: .updatedAt, ascending: true)),
+    SortOption(label: "sort_created_desc", value: FolderSort(key: .createdAt, ascending: false)),
+    SortOption(label: "sort_created_asc", value: FolderSort(key: .createdAt, ascending: true)),
+    SortOption(label: "sort_name_asc", value: FolderSort(key: .name, ascending: true)),
+    SortOption(label: "sort_name_desc", value: FolderSort(key: .name, ascending: false)),
+    SortOption(label: "sort_items_desc", value: FolderSort(key: .itemCount, ascending: false)),
+    SortOption(label: "sort_items_asc", value: FolderSort(key: .itemCount, ascending: true)),
+]
+
 /// ナビゲーションバーの並び替えボタン。押すとメニューが出て、選んでいるものにチェックが付く。
 /// 「項目＋向き」を1つの選択肢にまとめ（例: 更新日が新しい順）、1回のタップで決まるようにしている（Android と同じ）。
 struct SortMenu<Value: Hashable>: View {

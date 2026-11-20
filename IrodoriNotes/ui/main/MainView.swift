@@ -32,7 +32,8 @@ struct MainView: View {
             }
             Tab("tab_folder", systemImage: "folder", value: MainTab.folder) {
                 NavigationStack(path: $folderPath) {
-                    FolderListScreen()
+                    FolderListScreen(container: container, path: $folderPath)
+                        .navigationDestination(for: AppRoute.self, destination: destination)
                 }
             }
             Tab("tab_settings", systemImage: "gearshape", value: MainTab.settings) {
@@ -51,6 +52,8 @@ struct MainView: View {
         switch route {
         case .editor(let memoId, let folderId):
             MemoEditScreen(container: container, memoId: memoId, folderId: folderId)
+        case .folder(let folderId):
+            FolderDetailScreen(container: container, folderId: folderId)
         }
     }
 

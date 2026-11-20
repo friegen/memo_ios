@@ -94,6 +94,42 @@ final class AppContainer {
         ObserveEditorSettingsUseCase(settingsRepository: settingsRepository)
     }
 
+    func makeObserveRootFoldersUseCase() -> ObserveRootFoldersUseCase {
+        ObserveRootFoldersUseCase(folderRepository: folderRepository, settingsRepository: settingsRepository)
+    }
+
+    func makeSetFolderListSortUseCase() -> SetFolderListSortUseCase {
+        SetFolderListSortUseCase(settingsRepository: settingsRepository)
+    }
+
+    func makeCreateFolderUseCase() -> CreateFolderUseCase {
+        CreateFolderUseCase(folderRepository: folderRepository, clock: clock)
+    }
+
+    func makeUpdateFolderUseCase() -> UpdateFolderUseCase {
+        UpdateFolderUseCase(folderRepository: folderRepository)
+    }
+
+    func makeCountFolderContentsUseCase() -> CountFolderContentsUseCase {
+        CountFolderContentsUseCase(folderRepository: folderRepository)
+    }
+
+    func makeMoveFolderToTrashUseCase() -> MoveFolderToTrashUseCase {
+        MoveFolderToTrashUseCase(folderRepository: folderRepository, clock: clock)
+    }
+
+    func makeRestoreFolderUseCase() -> RestoreFolderUseCase {
+        RestoreFolderUseCase(trashRepository: trashRepository, clock: clock)
+    }
+
+    func makeSetFolderPinnedUseCase() -> SetFolderPinnedUseCase {
+        SetFolderPinnedUseCase(folderRepository: folderRepository)
+    }
+
+    func makeObserveFolderUseCase() -> ObserveFolderUseCase {
+        ObserveFolderUseCase(folderRepository: folderRepository)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
@@ -107,6 +143,18 @@ final class AppContainer {
             moveMemoToTrash: makeMoveMemoToTrashUseCase(),
             restoreMemo: makeRestoreMemoUseCase(),
             setMemoPinned: makeSetMemoPinnedUseCase())
+    }
+
+    func makeFolderListViewModel() -> FolderListViewModel {
+        FolderListViewModel(
+            observeRootFolders: makeObserveRootFoldersUseCase(),
+            setFolderListSort: makeSetFolderListSortUseCase(),
+            createFolder: makeCreateFolderUseCase(),
+            updateFolder: makeUpdateFolderUseCase(),
+            countFolderContents: makeCountFolderContentsUseCase(),
+            moveFolderToTrash: makeMoveFolderToTrashUseCase(),
+            restoreFolder: makeRestoreFolderUseCase(),
+            setFolderPinned: makeSetFolderPinnedUseCase())
     }
 
     func makeMemoEditViewModel(memoId: Int64?, folderId: Int64?) -> MemoEditViewModel {

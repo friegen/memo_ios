@@ -55,6 +55,8 @@ nonisolated struct FolderContents: Equatable, Sendable {
 nonisolated enum FolderError: Error, Equatable {
     /// 親フォルダがすでに最大の階層にある（画面側で作れないようにしておくこと）
     case depthLimitReached
+    /// 名前が空（画面側で決定できないようにしておくこと）
+    case emptyName
 }
 
 /// フォルダの色。DB には `rawValue`（Android と同じ名前）を保存する。
