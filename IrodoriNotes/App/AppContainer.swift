@@ -130,6 +130,30 @@ final class AppContainer {
         ObserveFolderUseCase(folderRepository: folderRepository)
     }
 
+    func makeObserveChildFoldersUseCase() -> ObserveChildFoldersUseCase {
+        ObserveChildFoldersUseCase(folderRepository: folderRepository, settingsRepository: settingsRepository)
+    }
+
+    func makeObserveFolderMemosUseCase() -> ObserveFolderMemosUseCase {
+        ObserveFolderMemosUseCase(memoRepository: memoRepository, settingsRepository: settingsRepository)
+    }
+
+    func makeSetFolderMemoSortUseCase() -> SetFolderMemoSortUseCase {
+        SetFolderMemoSortUseCase(settingsRepository: settingsRepository)
+    }
+
+    func makeGetFolderPathUseCase() -> GetFolderPathUseCase {
+        GetFolderPathUseCase(folderRepository: folderRepository)
+    }
+
+    func makeGetFolderTreeUseCase() -> GetFolderTreeUseCase {
+        GetFolderTreeUseCase(folderRepository: folderRepository)
+    }
+
+    func makeMoveMemoToFolderUseCase() -> MoveMemoToFolderUseCase {
+        MoveMemoToFolderUseCase(memoRepository: memoRepository, clock: clock)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
@@ -154,6 +178,28 @@ final class AppContainer {
             countFolderContents: makeCountFolderContentsUseCase(),
             moveFolderToTrash: makeMoveFolderToTrashUseCase(),
             restoreFolder: makeRestoreFolderUseCase(),
+            setFolderPinned: makeSetFolderPinnedUseCase())
+    }
+
+    func makeFolderDetailViewModel(folderId: Int64) -> FolderDetailViewModel {
+        FolderDetailViewModel(
+            folderId: folderId,
+            observeFolder: makeObserveFolderUseCase(),
+            observeChildFolders: makeObserveChildFoldersUseCase(),
+            observeFolderMemos: makeObserveFolderMemosUseCase(),
+            getFolderPath: makeGetFolderPathUseCase(),
+            getFolderTree: makeGetFolderTreeUseCase(),
+            setFolderListSort: makeSetFolderListSortUseCase(),
+            setFolderMemoSort: makeSetFolderMemoSortUseCase(),
+            createFolder: makeCreateFolderUseCase(),
+            updateFolder: makeUpdateFolderUseCase(),
+            countFolderContents: makeCountFolderContentsUseCase(),
+            moveFolderToTrash: makeMoveFolderToTrashUseCase(),
+            restoreFolder: makeRestoreFolderUseCase(),
+            moveMemoToTrash: makeMoveMemoToTrashUseCase(),
+            restoreMemo: makeRestoreMemoUseCase(),
+            moveMemoToFolder: makeMoveMemoToFolderUseCase(),
+            setMemoPinned: makeSetMemoPinnedUseCase(),
             setFolderPinned: makeSetFolderPinnedUseCase())
     }
 

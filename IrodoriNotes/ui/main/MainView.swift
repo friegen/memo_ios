@@ -27,13 +27,13 @@ struct MainView: View {
             Tab("tab_memo", systemImage: "note.text", value: MainTab.memo) {
                 NavigationStack(path: $memoPath) {
                     MemoListScreen(container: container, path: $memoPath)
-                        .navigationDestination(for: AppRoute.self, destination: destination)
+                        .navigationDestination(for: AppRoute.self) { destination($0, path: $memoPath) }
                 }
             }
             Tab("tab_folder", systemImage: "folder", value: MainTab.folder) {
                 NavigationStack(path: $folderPath) {
                     FolderListScreen(container: container, path: $folderPath)
-                        .navigationDestination(for: AppRoute.self, destination: destination)
+                        .navigationDestination(for: AppRoute.self) { destination($0, path: $folderPath) }
                 }
             }
             Tab("tab_settings", systemImage: "gearshape", value: MainTab.settings) {
@@ -47,13 +47,14 @@ struct MainView: View {
     }
 
     /// タブの中で開く画面。
+    /// - Parameter path: そのタブの画面の積み重ね（開いた先の画面がさらに画面を開くのに使う）
     @ViewBuilder
-    private func destination(_ route: AppRoute) -> some View {
+    private func destination(_ route: AppRoute, path: Binding<NavigationPath>) -> some View {
         switch route {
         case .editor(let memoId, let folderId):
             MemoEditScreen(container: container, memoId: memoId, folderId: folderId)
         case .folder(let folderId):
-            FolderDetailScreen(container: container, folderId: folderId)
+            FolderDetailScreen(container: container, folderId: folderId, path: path)
         }
     }
 

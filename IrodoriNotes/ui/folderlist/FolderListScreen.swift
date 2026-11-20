@@ -5,6 +5,10 @@ struct FolderListScreen: View {
     @Binding var path: NavigationPath
     @State private var viewModel: FolderListViewModel
     @State private var sheet: FolderSheet.Mode?
+    /// シートが画面に出ている（閉じる途中も含む）。閉じ終わるまで次の画面を開かない
+    @State private var isSheetOnScreen = false
+    /// シートが閉じ終わったら開くフォルダ（作成したフォルダ）
+    @State private var pendingOpenFolderId: Int64?
     @State private var deleteRequest: (folder: Folder, contents: FolderContents)?
     @Bindable private var messageCenter: MessageCenter
 
@@ -43,14 +47,21 @@ struct FolderListScreen: View {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 SortMenu(options: folderSortOptions, current: viewModel.uiState.sort) { viewModel.onSortSelected($0) }
                 Button {
-                    sheet = .create
+                    showSheet(.create)
                 } label: {
                     Label("action_add", systemImage: "plus")
                 }
                 .accessibilityIdentifier("add_button")
             }
         }
-        .sheet(item: $sheet) { mode in
+        .sheet(item: $sheet, onDismiss: {
+            // シートが閉じる途中で次の画面を開くと、開いた画面の読み込み（.task）が動かないことがあるので、閉じ終わってから開く
+            isSheetOnScreen = false
+            if let folderId = pendingOpenFolderId {
+                pendingOpenFolderId = nil
+                path.append(AppRoute.folder(folderId: folderId))
+            }
+        }) { mode in
             FolderSheet(mode: mode) { name, color in
                 switch mode {
                 case .create: Task { await viewModel.onCreateFolder(name: name, color: color) }
@@ -87,7 +98,7 @@ struct FolderListScreen: View {
                   systemImage: folder.isPinned ? "pin.slash" : "pin")
         }
         Button {
-            sheet = .edit(folder)
+            showSheet(.edit(folder))
         } label: {
             Label("action_edit_folder", systemImage: "pencil")
         }
@@ -98,10 +109,19 @@ struct FolderListScreen: View {
         }
     }
 
+    private func showSheet(_ mode: FolderSheet.Mode) {
+        isSheetOnScreen = true
+        sheet = mode
+    }
+
     private func handle(_ event: FolderListEvent) {
         switch event {
         case .openFolder(let folderId):
-            path.append(AppRoute.folder(folderId: folderId))
+            if isSheetOnScreen {
+                pendingOpenFolderId = folderId
+            } else {
+                path.append(AppRoute.folder(folderId: folderId))
+            }
         case .confirmDelete(let folder, let contents):
             deleteRequest = (folder, contents)
         case .showMovedToTrash(let folderId):

@@ -38,24 +38,35 @@ struct SortMenu<Value: Hashable>: View {
 
     var body: some View {
         Menu {
-            Section {
-                ForEach(options) { option in
-                    Button {
-                        onSelect(option.value)
-                    } label: {
-                        if option.value == current {
-                            Label(option.label, systemImage: "checkmark") // 選んでいるもの
-                        } else {
-                            Text(option.label)
-                        }
-                    }
-                }
-            } header: {
-                Text("sort_title") // メニューの見出し（Android のダイアログの題名にあたる）
-            }
+            SortOptionsSection(options: options, current: current, onSelect: onSelect)
         } label: {
             Label("action_sort", systemImage: "arrow.up.arrow.down")
         }
         .accessibilityIdentifier("sort_button")
+    }
+}
+
+/// 並び替えの選択肢（見出し「並び替え」と、選んでいるものにチェック）。メニューの中に置く。
+struct SortOptionsSection<Value: Hashable>: View {
+    let options: [SortOption<Value>]
+    let current: Value
+    let onSelect: (Value) -> Void
+
+    var body: some View {
+        Section {
+            ForEach(options) { option in
+                Button {
+                    onSelect(option.value)
+                } label: {
+                    if option.value == current {
+                        Label(option.label, systemImage: "checkmark") // 選んでいるもの
+                    } else {
+                        Text(option.label)
+                    }
+                }
+            }
+        } header: {
+            Text("sort_title") // メニューの見出し（Android のダイアログの題名にあたる）
+        }
     }
 }

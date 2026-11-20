@@ -52,7 +52,7 @@ struct MemoEditScreen: View {
                 }
             }
             .toolbar(.hidden, for: .tabBar)
-            .modifier(EditorHeader(title: headerTitle(state), subtitle: headerSubtitle(state)))
+            .titleAndSubtitle(headerTitle(state), subtitle: headerSubtitle(state))
             .navigationBarBackButtonHidden(confirmsOnLeave)
             .toolbar {
                 if confirmsOnLeave {
@@ -156,35 +156,6 @@ struct MemoEditScreen: View {
         case .notFound:
             messageCenter.show(L10n.string("editor_not_found"))
             dismiss()
-        }
-    }
-}
-
-/// ナビゲーションバーの中央のタイトルとサブタイトル。
-/// iOS 26 からは標準のサブタイトル（`.navigationSubtitle`）を使う（iOS 26.0 では自前の中央の表示 `.principal` が出ないため）。
-/// iOS 18〜25 は自前で2行に並べる。
-private struct EditorHeader: ViewModifier {
-    let title: String
-    let subtitle: String
-
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content
-                .navigationTitle(title)
-                .navigationSubtitle(subtitle)
-                .navigationBarTitleDisplayMode(.inline)
-        } else {
-            content
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        VStack(spacing: 0) {
-                            Text(title).font(.headline)
-                            Text(subtitle).font(.caption).foregroundStyle(.secondary)
-                        }
-                        .lineLimit(1)
-                    }
-                }
         }
     }
 }

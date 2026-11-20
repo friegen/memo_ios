@@ -6,7 +6,7 @@ import GRDB
 ///
 /// UI テストは起動の引数で次を指定する:
 /// - `-ui-testing`: メモリ上の DB と、空の別の保存先の設定を使う（シミュレーターに入っているデータを使わない・消さない）
-/// - `-ui-test-seed memos` / `folders`: ダミーのメモ・フォルダを入れて起動する
+/// - `-ui-test-seed memos` / `folders` / `deep`: ダミーのメモ・フォルダ・5階層のフォルダを入れて起動する
 enum UITestSupport {
     static let uiTestingArgument = "-ui-testing"
     static let seedArgument = "-ui-test-seed"
@@ -61,6 +61,16 @@ enum UITestSupport {
                 _ = try MemoDao.insert(db, MemoRecord(
                     folderId: hobby, html: "Books to read", plainText: "Books to read", firstLine: "Books to read",
                     charCount: 11, createdAt: base + 2 * hour, updatedAt: base + 2 * hour))
+            }
+        case "deep":
+            // 5階層: Level 1 ＞ Level 2 ＞ … ＞ Level 5（5階層目の中にはフォルダを作れない）
+            try database.writer.write { db in
+                var parent: Int64?
+                for level in 1...FolderPolicy.maxDepth {
+                    parent = try FolderDao.insert(db, FolderRecord(
+                        parentId: parent, name: "Level \(level)", colorKey: FolderColor.default.rawValue,
+                        createdAt: base, updatedAt: base))
+                }
             }
         default:
             fatalError("知らないダミーデータ: \(name)")
