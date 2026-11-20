@@ -88,6 +88,9 @@ tools/                # アイコンの作り直し（icon/）、Android の訳�
 - **1メモの上限**: `MemoPolicy.maxChars`（100,000 文字）
 - **フォルダの階層**: 最大5階層（`FolderPolicy.maxDepth`）。上・中の階層をたどる処理は `data/repository/FolderTree.swift`（全フォルダを読んで Swift でたどる）。中身が変わったら上の階層すべての更新日を進める
 - **本文の保存形式**: Android と同じ HTML（`<br>` `<b>` `<i>` `<u>` `<font color="red">`）。変換は `util/MemoHtml.swift`（自前。Apple 標準の HTML 読み込みは WebKit を使い、重く空白も変わるため使わない）。色は名前で保存し、表示色はライト／ダークで切り替える
+- **書式**: 本文の1文字ずつに意味の印（`.memoBold` `.memoItalic` `.memoUnderline` `.memoColor`。`util/MemoTextFormat.swift`）を付け、保存はこの印だけから作る。見た目（フォント・傾き・下線・色）は `ui/editor/MemoTextAttributes.swift` が印から作る（`applyVisuals`）。書式の付け外しは `util/TextStyler.swift`（印だけを変える）
+  - これから入力する文字の書式は UITextView の `typingAttributes`（`MemoEditorController.updateTypingAttributes`）
+  - 斜体は文字を傾ける（`.obliqueness`）。入力欄は TextKit 1（`UITextView(usingTextLayoutManager: false)`）でないと傾かない
 - **オープンソースライセンス**: 一覧は手で管理する（`Resources/licenses.json`）。パッケージを足したら必ず追記する
 - **広告**: 出し方の値（間隔・回数など）は `domain/model/AdPolicy.swift` だけで変える。AdMob の ID はビルド構成ごとの設定（xcconfig）に書く。広告の SDK は単体テストでは動かさない（広告まわりのロジックは AdPolicy と ViewModel でテストする）
 - **レビューのお願い**: 回数は `domain/model/ReviewPolicy.swift` で変える。Apple の決まりで独自のレビュー依頼ダイアログは出さず、`requestReview` を使う（`docs/requirements.md`）

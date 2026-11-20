@@ -9,6 +9,8 @@ struct MemoEditScreen: View {
     @State private var controller = MemoEditorController()
     @State private var isKeyboardVisible = false
     @State private var isEmptyDialogShown = false
+    @State private var isFormatPanelOpen = false
+    @State private var formatPanelState = FormatPanelState()
     @Bindable private var messageCenter: MessageCenter
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -39,6 +41,16 @@ struct MemoEditScreen: View {
                         .allowsHitTesting(false)
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                // 書式パネル: 画面の下（キーボードが出ているときはキーボードのすぐ上）。選択を外しても閉じない
+                if isFormatPanelOpen {
+                    FormatPanel(
+                        state: formatPanelState,
+                        onToggle: { controller.toggle($0) },
+                        onColor: { controller.setColor($0) },
+                        onClose: { setFormatPanelOpen(false) })
+                }
+            }
             .toolbar(.hidden, for: .tabBar)
             .modifier(EditorHeader(title: headerTitle(state), subtitle: headerSubtitle(state)))
             .navigationBarBackButtonHidden(confirmsOnLeave)
@@ -63,6 +75,14 @@ struct MemoEditScreen: View {
                         }
                         .accessibilityIdentifier("hide_keyboard_button")
                     }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    // 書式ボタン（オン／オフ）。書式パネルを開閉する（Android 版 v1.9）
+                    Toggle(isOn: Binding(get: { isFormatPanelOpen }, set: { setFormatPanelOpen($0) })) {
+                        Label("action_format", systemImage: "textformat")
+                    }
+                    .toggleStyle(.button)
+                    .accessibilityIdentifier("format_button")
                 }
             }
             // 左端からのスワイプで戻ろうとしたとき（確認が要るときは標準のスワイプが効かないので、ここで確認を出す）
@@ -101,11 +121,19 @@ struct MemoEditScreen: View {
                 // 画面を閉じたときに保存する（ここで作ったメモを空にして閉じたときは破棄する）
                 viewModel.onLeave(isClosing: true)
             }
+            .onAppear {
+                controller.onFormatPanelStateChange = { formatPanelState = $0 }
+            }
             .task { await viewModel.load() }
             .task { await viewModel.observeSettings() }
             .task {
                 for await event in viewModel.events() { handle(event) }
             }
+    }
+
+    private func setFormatPanelOpen(_ open: Bool) {
+        isFormatPanelOpen = open
+        controller.setFormatPanelOpen(open)
     }
 
     /// ナビゲーションバーのタイトル: 文字数。
@@ -123,7 +151,7 @@ struct MemoEditScreen: View {
     private func handle(_ event: MemoEditEvent) {
         switch event {
         case .setInitialText(let html, let isNewMemo):
-            controller.setText(MemoHtml.toPlainText(html)) // TODO(ステップ5): 装飾付きで入れる
+            controller.setHTML(html)
             if isNewMemo { controller.focus() }
         case .notFound:
             messageCenter.show(L10n.string("editor_not_found"))
