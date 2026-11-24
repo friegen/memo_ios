@@ -120,7 +120,7 @@ xcodebuild test -project IrodoriNotes.xcodeproj -scheme IrodoriNotes \
 - ステップの終わりには、一番古い iOS のシミュレーターでも同じテストを流す: `-destination 'platform=iOS Simulator,name=IrodoriNotes-iOS26,OS=26.0'`（名前で指定するときは `OS=` も付ける。付けないと最新の iOS で探して見つからない）
 - 単体テストだけ: `-only-testing:IrodoriNotesTests` を付ける
 - ビルドの出力は必ずリポジトリの中の `./build`（`.gitignore` 済み）
-- シミュレーター `IrodoriNotes-iPhone17`（iPhone 17 / iOS 27.2）と `IrodoriNotes-iOS26`（iPhone 17 / iOS 26.0）はこのプロジェクト専用。**ほかのシミュレーターは使わない・触らない**（同じ Mac で別のアプリの iOS 版を作っているため）
+- シミュレーター `IrodoriNotes-iPhone17`（iPhone 17 / iOS 27.2）と `IrodoriNotes-iOS26`（iPhone 17 / iOS 26.0）はこのプロジェクト専用。`IrodoriNotes-ProMax`（iPhone 17 Pro Max / iOS 27.2）は App Store のスクリーンショット専用（`docs/store/app-store/README.md`）。**ほかのシミュレーターは使わない・触らない**（同じ Mac で別のアプリの iOS 版を作っているため）
 - この Xcode では iOS 18 のシミュレーターをダウンロードできない（一番古いものは iOS 26.0）。iOS 18 では使えない書き方はコンパイラが `#available` を求めるので、それに従う
 - ユーザーは実機（iPhone）を持っていない。確認はすべてシミュレーターで行う（`docs/steps.md`「実機がないことによる制限」）
 

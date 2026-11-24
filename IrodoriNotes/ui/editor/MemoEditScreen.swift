@@ -303,6 +303,9 @@ struct MemoEditScreen: View {
         case .setInitialText(let html, let isNewMemo):
             controller.setHTML(html)
             if isNewMemo { controller.focus() }
+            #if DEBUG
+            if let paragraph = UITestSupport.selectParagraph { controller.selectParagraphForScreenshot(paragraph) }
+            #endif
         case .notFound:
             messageCenter.show(L10n.string("editor_not_found"))
             dismiss()

@@ -13,6 +13,14 @@ enum UITestSupport {
     static let uiTestingArgument = "-ui-testing"
     static let seedArgument = "-ui-test-seed"
     static let authArgument = "-ui-test-auth"
+    /// ストアのスクリーンショット用のサンプルデータの言語（`-ui-test-seed store -ui-test-store-lang ja`）
+    private static var storeLanguage = "en"
+
+    /// 編集画面で、開いたときに選ぶ段落（`-ui-test-select-paragraph 3`。ストアのスクリーンショットの「選んだ範囲の文字数」用）
+    static var selectParagraph: Int? {
+        let arguments = ProcessInfo.processInfo.arguments
+        return arguments.firstIndex(of: "-ui-test-select-paragraph").flatMap { $0 + 1 < arguments.count ? Int(arguments[$0 + 1]) : nil }
+    }
 
     static func makeContainerIfRequested(arguments: [String] = ProcessInfo.processInfo.arguments) -> AppContainer? {
         guard arguments.contains(uiTestingArgument) else { return nil }
@@ -28,6 +36,9 @@ enum UITestSupport {
         if let stage = argument("-ui-test-review-stage") { defaults.set(stage, forKey: SettingsKeys.reviewStage) }
         if let count = argument("-ui-test-launch-count").flatMap(Int.init) { defaults.set(count, forKey: SettingsKeys.appLaunchCount) }
         if let likedAt = argument("-ui-test-liked-at").flatMap(Int.init) { defaults.set(likedAt, forKey: SettingsKeys.reviewLikedAtLaunch) }
+        // テーマ（`-ui-test-theme DARK`。ストアのスクリーンショット用）
+        if let theme = argument("-ui-test-theme") { defaults.set(theme, forKey: SettingsKeys.themeMode) }
+        storeLanguage = argument("-ui-test-store-lang") ?? "en"
         do {
             let database = try AppDatabase.makeInMemory()
             if let index = arguments.firstIndex(of: seedArgument), index + 1 < arguments.count {
@@ -125,11 +136,75 @@ enum UITestSupport {
                     parentId: privateFolder, name: "Inner", colorKey: FolderColor.default.rawValue, createdAt: base, updatedAt: base))
                 try memo("Diary", folderId: privateFolder, locked: false, time: base)
             }
+        case "store":
+            try seedStore(into: database)
         default:
             fatalError("知らないダミーデータ: \(name)")
         }
     }
 }
+extension UITestSupport {
+    /// ストアのスクリーンショット用のサンプルデータ（`StoreSampleData`。Android 版のストアの画像と同じ文章・日付・ピン留め・ロック）。
+    private static func seedStore(into database: AppDatabase) throws {
+        guard let data = StoreSampleData.language(storeLanguage) else { fatalError("サンプルデータを読めない") }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        func t(_ day: Int, _ hour: Int = 9, _ minute: Int = 30) -> Int64 {
+            let date = calendar.date(from: DateComponents(year: 2026, month: 11, day: day, hour: hour, minute: minute))!
+            return Int64(date.timeIntervalSince1970 * 1000)
+        }
+        try database.writer.write { db in
+            @discardableResult
+            func memo(_ html: String, folderId: Int64?, created: Int64, updated: Int64, pinned: Bool = false, locked: Bool = false) throws -> Int64 {
+                let plain = MemoHtml.toPlainText(html)
+                let id = try MemoDao.insert(db, MemoRecord(
+                    folderId: folderId, html: html, plainText: plain,
+                    firstLine: CharCounter.firstLine(plain, maxChars: MemoPolicy.firstLineMaxChars),
+                    charCount: CharCounter.countChars(plain), createdAt: created, updatedAt: updated,
+                    isLocked: locked, isPinned: pinned))
+                if let folderId { try FolderDao.touchWithAncestors(db, folderIds: [folderId], now: updated) }
+                return id
+            }
+            func folder(_ name: String, _ color: FolderColor, parent: Int64?, time: Int64, pinned: Bool = false, locked: Bool = false) throws -> Int64 {
+                let id = try FolderDao.insert(db, FolderRecord(
+                    parentId: parent, name: name, colorKey: color.rawValue, createdAt: time, updatedAt: time,
+                    isLocked: locked, isPinned: pinned))
+                if let parent { try FolderDao.touchWithAncestors(db, folderIds: [parent], now: time) }
+                return id
+            }
+            // メモタブ
+            for item in data.memos {
+                let created = t(item.created, 8 + item.created % 9)
+                let updated = t(item.updated, 10 + item.updated % 9, 15)
+                try memo(item.html, folderId: nil, created: created, updated: updated, pinned: item.pinned)
+            }
+            try memo(data.locked, folderId: nil, created: t(3), updated: t(12, 21, 5), locked: true)
+            // フォルダタブ（0: 仕事〔ピン留め〕、最後: 日記〔ロック〕）
+            let colors: [FolderColor] = [.blue, .green, .orange, .purple, .yellow, .pink]
+            var folderIds: [Int64] = []
+            for (i, name) in data.folders.enumerated() {
+                folderIds.append(try folder(name, colors[i], parent: nil, time: t(2 + i, 9 + i),
+                                            pinned: i == 0, locked: i == data.folders.count - 1))
+            }
+            for (i, name) in data.work.enumerated() {
+                let child = try folder(name, i == 0 ? .teal : .default, parent: folderIds[0], time: t(5 + i, 13))
+                for j in 0..<(3 - i) { try memo("memo", folderId: child, created: t(5 + i, 14 + j), updated: t(5 + i, 14 + j)) }
+            }
+            for (i, name) in data.hobby.enumerated() {
+                _ = try folder(name, i == 0 ? .yellow : .orange, parent: folderIds[1], time: t(6 + i, 19))
+            }
+            for (i, html) in data.workMemos.enumerated() {
+                try memo(html, folderId: folderIds[0], created: t(8 + i, 11), updated: t(14 + i, 16, 40))
+            }
+            // ほかのフォルダにもメモを入れて、件数が 0 ばかりにならないようにする
+            for (index, count) in [(2, 4), (3, 3), (4, 2), (5, 6)] {
+                // フォルダを作った日より後の日付にする（更新日が作成日より前にならないように）
+                for i in 0..<count { try memo("memo \(i)", folderId: folderIds[index], created: t(8 + i, 8), updated: t(8 + i, 8)) }
+            }
+        }
+    }
+}
+
 /// UI テスト用の端末の認証。Face ID の画面を出さず、起動の引数で決めた結果を返す。
 final class UITestAuthenticator: DeviceAuthenticator {
     private let result: String

@@ -1,0 +1,70 @@
+import XCTest
+
+/// App Store のスクリーンショットの元の画面を撮る（docs/store/app-store/README.md「スクリーンショット」）。
+/// ふだんは使わない。撮るときだけ IrodoriNotesUITests/ にコピーして、6.9 インチのシミュレーター（IrodoriNotes-ProMax）で動かす。
+/// 出力: build/store-screens/<言語>_<画面>.png（1320×2868）。終わったらコピーしたファイルは消す。
+final class StoreScreenshotTests: XCTestCase {
+    private let languages = [("ja", "ja_JP"), ("en", "en_US"), ("es", "es_ES"), ("pt", "pt_BR"), ("fr", "fr_FR"),
+                             ("de", "de_DE"), ("ko", "ko_KR"), ("zh-Hant", "zh_TW"), ("id", "id_ID")]
+    private let outDir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        .appendingPathComponent("build/store-screens")
+
+    private func launch(_ lang: String, _ locale: String, extra: [String] = []) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments += ["-ui-testing", "-ui-test-seed", "store", "-ui-test-store-lang", lang,
+                                "-AppleLanguages", "(\(lang))", "-AppleLocale", locale] + extra
+        app.launch()
+        _ = app.buttons["memo_row"].firstMatch.waitForExistence(timeout: 10)
+        return app
+    }
+
+    private func shot(_ lang: String, _ name: String) {
+        sleep(2)
+        try? FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
+        try? XCUIScreen.main.screenshot().pngRepresentation.write(to: outDir.appendingPathComponent("\(lang)_\(name).png"))
+    }
+
+    private func memoRow(_ app: XCUIApplication, _ index: Int) -> XCUIElement {
+        app.buttons.matching(identifier: "memo_row").element(boundBy: index)
+    }
+
+    @MainActor
+    func testStoreScreens() {
+        for (lang, locale) in languages {
+            // メモ一覧（ピン留め・ロック）→ フォルダ一覧 → フォルダの中
+            var app = launch(lang, locale)
+            shot(lang, "memos")
+            app.tabBars.buttons.element(boundBy: 1).tap()
+            _ = app.buttons["folder_row"].firstMatch.waitForExistence(timeout: 5)
+            shot(lang, "folders")
+            app.buttons.matching(identifier: "folder_row").element(boundBy: 0).tap()
+            _ = app.buttons["memo_row"].firstMatch.waitForExistence(timeout: 5)
+            shot(lang, "folder_detail")
+            app.terminate()
+
+            // 文字色のメモ（書式パネル）→ 出力の形式
+            app = launch(lang, locale)
+            memoRow(app, 1).tap()
+            _ = app.textViews["memo_text"].waitForExistence(timeout: 5)
+            app.buttons["format_button"].tap()
+            shot(lang, "editor_color")
+            app.buttons["format_button"].tap()
+            app.buttons["export_button"].tap()
+            shot(lang, "export")
+            app.terminate()
+
+            // 選んだ範囲の文字数（感想文のメモの段落を選ぶ）
+            let paragraph = ["ja": 3, "en": 3][lang] ?? 2
+            app = launch(lang, locale, extra: ["-ui-test-select-paragraph", "\(paragraph)"])
+            memoRow(app, 2).tap()
+            _ = app.textViews["memo_text"].waitForExistence(timeout: 5)
+            shot(lang, "editor_select")
+            app.terminate()
+
+            // ダークモード
+            app = launch(lang, locale, extra: ["-ui-test-theme", "DARK"])
+            shot(lang, "dark_memos")
+            app.terminate()
+        }
+    }
+}

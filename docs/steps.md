@@ -769,7 +769,7 @@
 
    - 集めていないもの（選ばない）: 連絡先情報、**ユーザーコンテンツ（メモの中身）**、検索の履歴、ユーザ ID、その他の診断データ、購入、健康、財務、連絡先、機密情報
    - 提出の前に Google の最新の案内（https://developers.google.com/admob/ios/privacy/data-disclosure ）で変わっていないか確かめる。入れたら右上の「公開」を押す
-5. **バージョンのページ**（「1.0 提出準備中」）: `docs/store/app-store/<言語>.md` の文章を言語ごとに貼る。サポート URL・マーケティング URL は `https://friegen.github.io`（AdMob の app-ads.txt もここから探される）
+5. **バージョンのページ**（「1.0 提出準備中」）: `docs/store/app-store/<言語>.md` の文章を言語ごとに貼る。サポート URL は `https://friegen.github.io/irodori-notes/support-ios.html`、マーケティング URL は `https://friegen.github.io`（AdMob の app-ads.txt はマーケティング URL のサイトから探される）
    - App Store の文章には Android・Google Play のことを書かない（審査ガイドライン 2.3.10。掲載文には入っていないことを確かめ済み）
 6. **審査に出すときの情報**: ログインは無いので「サインイン情報」は不要にする。連絡先（名前・電話・メール。ストアには出ない）。メモ欄の英文は Claude が用意する（広告の同意の画面はヨーロッパからだけ出る、ロックは Face ID・パスコードを使う、など）
 7. **ビルドをアップロード**: Xcode で Product → Archive →「Distribute App」→ App Store Connect（上の2のプロファイルを作った後）。最後に「Upload Symbols Failed … GoogleMobileAds.framework」と出るのは問題ない（片思いチェッカーと同じ。Google が SDK を dSYM 無しで配っているため）
@@ -777,6 +777,9 @@
 #### 4. 実機がないことについて
 - TestFlight（テスト配信。Google Play の内部テストにあたる）で確かめるには実機が要る。実機がないまま公開する場合は、シミュレーターでの確認と Apple の審査だけになる（「実機がないことによる制限」）
 
-### 相談したいこと
-- **App Store のスクリーンショット**: 6.9 インチ（iPhone 17 Pro Max など。1320×2868）の画面の画像が最低1枚、最大10枚必要。Android 版と同じく、見出し・背景・スマホの枠を付けた画像を9言語分作るか、枠なしの画面のスクリーンショットだけにするか（作るには、こちら専用の 6.9 インチのシミュレーターを1台足す）
-
+### App Store のスクリーンショット（2026-11-24 追記。ユーザーの指定で A: 見出し・背景・枠付き）
+- `docs/store/app-store/screenshots/<言語>/01.jpg 〜 07.jpg`（9言語 × 7枚。6.9 インチの 1320×2868）。Android 版のストアの画像と同じ見出し・背景・サンプルのメモ（文章は Android 版の StoreShotTest から自動で取り込んだ）
+- こちら専用の 6.9 インチのシミュレーター `IrodoriNotes-ProMax`（iPhone 17 Pro Max・iOS 27.2）を足して撮った。上の帯（時刻・電池）は 9:41・満充電に整えた
+- 撮り方・作り直し方は `docs/store/app-store/README.md`。撮るためのしくみ（サンプルデータ `-ui-test-seed store`、段落を選んだ状態で開く `-ui-test-select-paragraph`、テーマ `-ui-test-theme`）は Debug のビルドだけに入る（ストアに出す版には入らない）
+- 9言語とも見て確かめた（見出しが入りきっている・アプリの画面もその言語）
+- App Store Connect では、バージョンのページの「iPhone 6.9 インチディスプレイ」に言語ごとに入れる

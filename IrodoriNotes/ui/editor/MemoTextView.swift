@@ -47,6 +47,23 @@ final class MemoEditorController {
         updateTypingAttributes()
     }
 
+    #if DEBUG
+    /// ストアのスクリーンショット用（`-ui-test-select-paragraph`）: 空行で区切った index 番目の段落を選ぶ。キーボードは出さない。
+    func selectParagraphForScreenshot(_ index: Int) {
+        guard let textView else { return }
+        let paragraphs = (textView.text ?? "").components(separatedBy: "\n\n")
+        guard index < paragraphs.count else { return }
+        let start = paragraphs[..<index].reduce(0) { $0 + ($1 as NSString).length + 2 }
+        let range = NSRange(location: start, length: (paragraphs[index] as NSString).length)
+        DispatchQueue.main.async {
+            textView.inputView = UIView() // キーボードの代わりに何も出さない
+            textView.becomeFirstResponder()
+            textView.selectedRange = range
+            textView.delegate?.textViewDidChangeSelection?(textView)
+        }
+    }
+    #endif
+
     /// 今の本文の写し（出力用。保存前の変更も含む）。作っている間に書き換わらないよう写しを渡す。
     func contentSnapshot() -> NSAttributedString? {
         textView.map { NSAttributedString(attributedString: $0.attributedText) }
