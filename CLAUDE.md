@@ -22,6 +22,11 @@ Android 版の「5. 将来対応」「機能の候補」にあるものは作ら
   - 入った版は `IrodoriNotes.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`（コミットする）。パッケージを足したら `Resources/licenses.json` にも足す（`LicensesTests` が確かめる）
 - **ビルド構成**（Android の flavor にあたる）: `Debug`（開発用。AdMob は**テスト用の ID**）/ `Release`（ストア用。AdMob の本物の ID）。開発中・シミュレーター・実機の確認では必ず Debug を使う（本物の広告をタップするとアカウントが止まることがある）
 - 作業ブランチ: `main`（2026-11-19 にユーザーが指定）。push はユーザーが行う
+- **署名**（片思いチェッカー iOS と同じやり方。2026-11-24）: `DEVELOPMENT_TEAM = 3QAHL8722V`（プロジェクト全体の設定。3つのターゲットが引き継ぐ）。Debug・シミュレーター・テストは自動の署名（`CODE_SIGN_STYLE = Automatic`）
+  - **アプリのターゲットの Release の実機向け（`[config=Release][sdk=iphoneos*]`）だけ手動の署名**: `CODE_SIGN_STYLE = Manual`・`CODE_SIGN_IDENTITY = "Apple Distribution"`・`PROVISIONING_PROFILE_SPECIFIER = "Irodori Notes App Store"`。アーカイブ（ストアに出す版）はこれで署名される
+  - 理由: iPhone の実機を1台も登録していないと、自動の署名ではアーカイブが「Your team has no devices from which to generate a provisioning profile」で失敗する。配布用（App Store Connect 用）のプロファイルはデバイスの登録が要らない
+  - 証明書（Apple Distribution）は片思いチェッカーと共通（ユーザーの Mac のキーチェーン）。プロファイル「Irodori Notes App Store」はユーザーが開発者サイトで作る。**証明書とプロファイルは1年ごとに作り直す**（名前を同じにすれば設定は変えなくてよい）。鍵・証明書・プロファイルはリポジトリに入れない
+  - 署名しないで実機向けにビルドできるか確かめるとき: `xcodebuild archive ... -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO -archivePath ./build/...`
 
 ## アーキテクチャ
 ```

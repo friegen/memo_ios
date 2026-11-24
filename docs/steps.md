@@ -20,7 +20,7 @@
 | 10 | 出力 | PDF・画像・テキスト・HTML、共有シート | ✅ 完了 | `89a7a76` |
 | 11 | 広告 | AdMob（バナー2つ・アプリ起動・リワード）、UMP、ATT、広告のプライバシー設定 | ✅ 完了 | `11fcab8` |
 | 12 | レビューのお願い | 10回目の「いかがですか？」、requestReview | ✅ 完了 | `9ebc121` |
-| 13 | 仕上げ・ストア準備 | プライバシーマニフェスト、プライバシーポリシーの iOS 分、ライト・ダーク・9言語の見た目、Release ビルド、App Store Connect・TestFlight、ストアの文章 | 🟡 アプリ側は完了（App Store Connect は Apple Developer Program の登録待ち） | |
+| 13 | 仕上げ・ストア準備 | プライバシーマニフェスト、プライバシーポリシーの iOS 分、ライト・ダーク・9言語の見た目、Release ビルド、App Store Connect・TestFlight、ストアの文章 | 🟡 アプリ側は完了（App Store Connect は Apple Developer Program の登録待ち） | `787bf22` |
 
 ## 未決事項・ユーザー対応待ち
 - [x] 【ステップ0】CLAUDE.md・requirements.md（🟡 の項目を含む）→ おすすめどおりで OK（2026-11-19）
@@ -38,9 +38,9 @@
 - [x] 【ステップ10】出力 → OK（2026-11-24）
 - [x] 【ステップ11】広告 → OK（2026-11-24）
 - [x] 【ステップ12】レビューのお願い → OK（2026-11-24）
-- [ ] 【ステップ13】下の「ステップ13」の「ユーザーにしてほしいこと」（プライバシーポリシーの公開・App Store Connect）
+- [ ] 【ステップ13】下の「ステップ13」の「ユーザーにしてほしいこと」（プライバシーポリシーの公開・配布用のプロファイル・App Store Connect）
 - [x] AdMob の本物の ID を受け取り、Release の設定に入れた（2026-11-24。アプリ ID・バナー・アプリ起動・リワード。**バナーは1つの広告ユニットをメイン画面と編集画面の両方で使う**）
-- [ ] **Apple Developer Program に登録する**（年 99 ドル。Google Play の開発者登録にあたる）。シミュレーターでの開発・確認は登録なしで進められるが、App Store Connect・TestFlight・ストアへの提出には必要。ステップ13 までに。登録したらチーム ID を Claude に教える
+- [x] Apple Developer Program は登録済み（片思いチェッカーと同じチーム `3QAHL8722V`。2026-11-24 に確認）
 - 実機（iPhone）はない（2026-11-19）→ 下の「実機がないことによる制限」
 - [ ] AdMob に iOS のアプリと広告ユニットを作る（ステップ11 までに。手順は下の「AdMob でユーザーがすること」）
 - [ ] App Store Connect でアプリを作る（ステップ13 までに。そのとき「Irodori Notes」の名前が使えるか確かめる）
@@ -720,38 +720,61 @@
 - ストアの文章: 9言語とも上限以内（`docs/store/app-store/README.md` に文字数）
 - 単体テスト 224件・UI テスト 53件すべて成功（iOS 27.2・iOS 26.0）。アプリのコードは変えていない（プライバシーマニフェスト・Info.plist の項目だけ）
 
+### 署名（2026-11-24 追記。片思いチェッカー iOS と同じやり方）
+- チーム `3QAHL8722V` をプロジェクト全体に設定。**ストアに出す版（Release の実機向け）だけ手動の署名**（証明書 Apple Distribution・プロファイル「Irodori Notes App Store」）。開発用・シミュレーター・テストは自動の署名のまま
+  - 理由: 実機を1台も登録していないと、自動の署名ではアーカイブ（ストアに出す版を作ること。Android の署名付き AAB を作ることにあたる）ができないため。配布用のプロファイルは実機の登録が要らない
+- 確かめたこと: 設定が構成ごとに正しく効く（`xcodebuild -showBuildSettings`）。署名なしで実機向けにアーカイブできる（コンパイルが通る）。署名ありのアーカイブは「プロファイル『Irodori Notes App Store』が見つからない」で止まる（下の2でプロファイルを作れば通る）。Apple Distribution の証明書はこの Mac にある（片思いチェッカーで作ったもの。同じものを使える）。単体テストとシミュレーターでの起動は変わらず成功
+
 ### ユーザーにしてほしいこと
 #### 1. プライバシーポリシーを公開する（いつでも）
 1. `docs/privacy-policy.md` を読んで確認する
 2. friegen.github.io のリポジトリの `irodori-notes/privacy-policy.md` を、この内容に置き換えて公開する（Android 版のアプリも同じページを開くので、両方に反映される）
 3. 必要なら Android 版の `docs/privacy-policy.md` も同じ内容にそろえる
 
-#### 2. Apple Developer Program に登録したら（App Store Connect。Google Play Console にあたる）
-1. **チーム ID を Claude に教える**（developer.apple.com ＞ Account ＞ Membership details の Team ID。10文字の英数字）→ Claude がプロジェクトの署名の設定（`DEVELOPMENT_TEAM`）に入れる
-2. **App Store Connect で新しいアプリを作る**: 「マイ App」＞「＋」＞「新規 App」
-   - プラットフォーム: iOS / 名前: `Irodori Notes - Color Notepad`（使えなければ少し変える）/ プライマリ言語: 英語（または日本語）/ バンドル ID: `xyz.friegen.memo`（一覧になければ developer.apple.com の Identifiers で先に登録）/ SKU: 自由（例 `irodori-notes`）
-3. **App 情報**: カテゴリ「仕事効率化」（Android の「仕事効率化」と同じ）、コンテンツ配信権「いいえ」、年齢制限の質問にはすべて「なし」（広告を出すが、アプリ自体に年齢制限の内容はない）
-4. **価格**: 無料、配信する国: すべて
-5. **App のプライバシー**（Google Play の「データ セーフティ」にあたる）:
+#### 2. 配布用のプロファイルを作る（アーカイブの前に1回。1年ごとに作り直す）
+1. 開発者サイトの Identifiers（https://developer.apple.com/account/resources/identifiers/list ）で「＋」→「App IDs」→「App」→ Description `Irodori Notes`、Bundle ID は Explicit で `xyz.friegen.memo` → Capabilities は何も選ばない（Face ID・広告には要らない）→ Register
+2. Profiles（https://developer.apple.com/account/resources/profiles/list ）で「＋」→ Distribution の「App Store Connect」→ App ID に `xyz.friegen.memo` → 証明書に Apple Distribution（片思いチェッカーで作ったもの）→ 名前を **`Irodori Notes App Store`**（この名前でプロジェクトが探す。1文字でも違うと見つからない）→ Generate → Download
+3. ダウンロードしたファイルをダブルクリックして取り込む（または Xcode の Settings → Accounts → Download Manual Profiles）
+4. Claude に伝える → 署名ありのアーカイブができるか確かめる
+
+#### 3. App Store Connect（Google Play Console にあたる。入れるものは片思いチェッカーの `docs/app-store-connect.md` にそろえた）
+1. **新しいアプリを作る**: 「マイ App」＞「＋」＞「新規 App」
+   - プラットフォーム: iOS / 名前: `Irodori Notes - Color Notepad`（使えなければ少し変える）/ プライマリ言語: 英語（または日本語）/ バンドル ID: `xyz.friegen.memo`（上の2の1で登録したもの）/ SKU: 自由（例 `irodori-notes`）
+2. **一般の情報**: カテゴリ「仕事効率化」、著作権 `2026 friegen`、価格 無料、配信する国 すべて、**「Apple シリコン搭載の Mac」「Apple Vision Pro」での配信はチェックを外す**（iPhone だけのアプリ。requirements.md）、App 内課金 なし
+3. **年齢制限指定の質問**（片思いチェッカーの答え方にそろえた案）:
+
+| 質問 | 答え | 理由 |
+|---|---|---|
+| 暴力・性的な内容・ギャンブル・薬物など、内容についての質問 | すべて「なし」 | |
+| ユーザーが作ったコンテンツ | いいえ | メモは自分の端末の中だけで、ほかの人に見せる機能はない |
+| メッセージ・チャット | いいえ | |
+| 広告 | はい | AdMob |
+| 制限のない Web アクセス | いいえ | アプリの中のブラウザは、プライバシーポリシーのページを開くだけ |
+| 保護者による管理・年齢の確認 | いいえ | |
+
+4. **App のプライバシー**（Google Play の「データ セーフティ」にあたる）: 片思いチェッカーで提出した答え（**Google の案内より多めに答える**。ユーザーの判断）にそろえる。アプリのコード自体はデータを集めず、広告の SDK が集める分を答える
    - プライバシーポリシーの URL: `https://friegen.github.io/irodori-notes/privacy-policy.html`
-   - 「データを収集しますか？」→ はい（広告の SDK が集める）。選ぶ項目と答え（Google の SDK のプライバシーマニフェストの内容）:
+   - 「データを収集していますか？」→ はい
+   - 使う目的は、7つとも「サードパーティ広告」「デベロッパの広告またはマーケティング」「アナリティクス」の3つ（デバイス ID だけはアナリティクスなし）
 
-| データの種類 | 用途 | ユーザーに関連付け | トラッキングに使用 |
-|---|---|---|---|
-| ID ＞ デバイス ID | 他社の広告・デベロッパの広告・分析 | はい | **はい** |
-| 位置情報 ＞ おおよその位置情報 | 他社の広告・デベロッパの広告・分析 | はい | いいえ |
-| 使用状況データ ＞ 製品の操作 | 他社の広告・デベロッパの広告・分析 | はい | いいえ |
-| 使用状況データ ＞ 広告データ | 他社の広告・デベロッパの広告・分析 | はい | いいえ |
-| 診断 ＞ クラッシュデータ | 分析 | いいえ | いいえ |
-| 診断 ＞ パフォーマンスデータ | 他社の広告・デベロッパの広告・分析 | いいえ | いいえ |
-| 診断 ＞ その他の診断データ | 他社の広告・デベロッパの広告・分析 | いいえ | いいえ |
+| データの種類 | ユーザーに関連付けられる | トラッキングに使う |
+|---|---|---|
+| 位置情報 ＞ おおよその場所（IP アドレスから） | いいえ | はい |
+| 閲覧履歴 | はい | はい |
+| ID ＞ デバイス ID（IDFA。許可した人だけ） | はい | はい |
+| 使用状況データ ＞ 製品の操作 | はい | はい |
+| 使用状況データ ＞ 広告データ | はい | はい |
+| 診断 ＞ クラッシュデータ | いいえ | はい |
+| 診断 ＞ パフォーマンスデータ | はい | はい |
 
-   - メモの内容（ユーザーのコンテンツ）は集めていないので選ばない
-6. **バージョンのページ**（「1.0 提出準備中」）: `docs/store/app-store/<言語>.md` の文章を言語ごとに貼る（言語を足すのはページ右上の言語のメニュー）。サポート URL・マーケティング URL は `https://friegen.github.io`（AdMob の app-ads.txt もここから探される）
-7. **ビルドをアップロード**: Claude がアーカイブ（Android の署名付き AAB を作ることにあたる）を作る手順を用意するので、Xcode の Organizer から送る
-8. 審査に出す（審査用のメモ欄に「広告の同意の画面はヨーロッパからだけ出る」「ロックは Face ID・パスコードを使う」などを書くと伝わりやすい。Claude が文案を作る）
+   - 集めていないもの（選ばない）: 連絡先情報、**ユーザーコンテンツ（メモの中身）**、検索の履歴、ユーザ ID、その他の診断データ、購入、健康、財務、連絡先、機密情報
+   - 提出の前に Google の最新の案内（https://developers.google.com/admob/ios/privacy/data-disclosure ）で変わっていないか確かめる。入れたら右上の「公開」を押す
+5. **バージョンのページ**（「1.0 提出準備中」）: `docs/store/app-store/<言語>.md` の文章を言語ごとに貼る。サポート URL・マーケティング URL は `https://friegen.github.io`（AdMob の app-ads.txt もここから探される）
+   - App Store の文章には Android・Google Play のことを書かない（審査ガイドライン 2.3.10。掲載文には入っていないことを確かめ済み）
+6. **審査に出すときの情報**: ログインは無いので「サインイン情報」は不要にする。連絡先（名前・電話・メール。ストアには出ない）。メモ欄の英文は Claude が用意する（広告の同意の画面はヨーロッパからだけ出る、ロックは Face ID・パスコードを使う、など）
+7. **ビルドをアップロード**: Xcode で Product → Archive →「Distribute App」→ App Store Connect（上の2のプロファイルを作った後）。最後に「Upload Symbols Failed … GoogleMobileAds.framework」と出るのは問題ない（片思いチェッカーと同じ。Google が SDK を dSYM 無しで配っているため）
 
-#### 3. 実機がないことについて
+#### 4. 実機がないことについて
 - TestFlight（テスト配信。Google Play の内部テストにあたる）で確かめるには実機が要る。実機がないまま公開する場合は、シミュレーターでの確認と Apple の審査だけになる（「実機がないことによる制限」）
 
 ### 相談したいこと
