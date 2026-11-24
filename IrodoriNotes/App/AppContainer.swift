@@ -18,8 +18,16 @@ final class AppContainer {
 
     /// アプリ全体のお知らせ（「ゴミ箱に移動しました［元に戻す］」など）
     let messageCenter = MessageCenter()
+    /// ロックを外している状態（アプリで1つ）
+    let lockSession = LockSession()
+    /// 端末の認証（Face ID / Touch ID・パスコード）
+    let deviceAuthenticator: DeviceAuthenticator
 
-    init(database: AppDatabase, defaults: UserDefaults = .standard, clock: AppClock = AppClock()) {
+    /// - Parameter makeAuthenticator: UI テストでは認証の結果を決めて返すものに差し替える
+    init(
+        database: AppDatabase, defaults: UserDefaults = .standard, clock: AppClock = AppClock(),
+        makeAuthenticator: (LockSession) -> DeviceAuthenticator = { DeviceAuthenticator(lockSession: $0) }
+    ) {
         self.database = database
         self.clock = clock
         memoRepository = MemoRepository(database: database)
@@ -28,6 +36,7 @@ final class AppContainer {
         settingsRepository = SettingsRepository(defaults: defaults)
         storageRepository = StorageRepository()
         licenseRepository = LicenseRepository()
+        deviceAuthenticator = makeAuthenticator(lockSession)
     }
 
     /// アプリで使う入れ物（ファイルの DB・ふだんの UserDefaults）。
@@ -198,6 +207,14 @@ final class AppContainer {
         EmptyTrashUseCase(trashRepository: trashRepository)
     }
 
+    func makeSetMemoLockedUseCase() -> SetMemoLockedUseCase {
+        SetMemoLockedUseCase(memoRepository: memoRepository)
+    }
+
+    func makeSetFolderLockedUseCase() -> SetFolderLockedUseCase {
+        SetFolderLockedUseCase(folderRepository: folderRepository)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
@@ -210,7 +227,8 @@ final class AppContainer {
             setMemoTabSort: makeSetMemoTabSortUseCase(),
             moveMemoToTrash: makeMoveMemoToTrashUseCase(),
             restoreMemo: makeRestoreMemoUseCase(),
-            setMemoPinned: makeSetMemoPinnedUseCase())
+            setMemoPinned: makeSetMemoPinnedUseCase(),
+            setMemoLocked: makeSetMemoLockedUseCase())
     }
 
     func makeFolderListViewModel() -> FolderListViewModel {
@@ -222,7 +240,8 @@ final class AppContainer {
             countFolderContents: makeCountFolderContentsUseCase(),
             moveFolderToTrash: makeMoveFolderToTrashUseCase(),
             restoreFolder: makeRestoreFolderUseCase(),
-            setFolderPinned: makeSetFolderPinnedUseCase())
+            setFolderPinned: makeSetFolderPinnedUseCase(),
+            setFolderLocked: makeSetFolderLockedUseCase())
     }
 
     func makeFolderDetailViewModel(folderId: Int64) -> FolderDetailViewModel {
@@ -244,7 +263,9 @@ final class AppContainer {
             restoreMemo: makeRestoreMemoUseCase(),
             moveMemoToFolder: makeMoveMemoToFolderUseCase(),
             setMemoPinned: makeSetMemoPinnedUseCase(),
-            setFolderPinned: makeSetFolderPinnedUseCase())
+            setFolderPinned: makeSetFolderPinnedUseCase(),
+            setMemoLocked: makeSetMemoLockedUseCase(),
+            setFolderLocked: makeSetFolderLockedUseCase())
     }
 
     func makeMemoEditViewModel(memoId: Int64?, folderId: Int64?) -> MemoEditViewModel {
@@ -256,7 +277,8 @@ final class AppContainer {
             moveMemoToTrash: makeMoveMemoToTrashUseCase(),
             revertMemo: makeRevertMemoUseCase(),
             discardMemo: makeDiscardMemoUseCase(),
-            observeEditorSettings: makeObserveEditorSettingsUseCase())
+            observeEditorSettings: makeObserveEditorSettingsUseCase(),
+            getFolderPath: makeGetFolderPathUseCase())
     }
 
     func makeSettingsViewModel() -> SettingsViewModel {

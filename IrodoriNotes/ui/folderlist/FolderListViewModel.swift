@@ -19,6 +19,8 @@ enum FolderListEvent: Equatable, Sendable {
     case confirmDelete(folder: Folder, contents: FolderContents)
     /// ゴミ箱に移したことを知らせ、「元に戻す」を出す。
     case showMovedToTrash(folderId: Int64)
+    /// ロックを付けた／外したことを知らせる。
+    case showLockChanged(locked: Bool)
 }
 
 /// フォルダタブ（フォルダタブ直下のフォルダ一覧）の ViewModel（Android 版の FolderListViewModel にあたる）。
@@ -34,6 +36,7 @@ final class FolderListViewModel {
     private let moveFolderToTrash: MoveFolderToTrashUseCase
     private let restoreFolder: RestoreFolderUseCase
     private let setFolderPinned: SetFolderPinnedUseCase
+    private let setFolderLocked: SetFolderLockedUseCase
     @ObservationIgnored private let eventChannel = EventChannel<FolderListEvent>()
 
     init(
@@ -44,7 +47,8 @@ final class FolderListViewModel {
         countFolderContents: CountFolderContentsUseCase,
         moveFolderToTrash: MoveFolderToTrashUseCase,
         restoreFolder: RestoreFolderUseCase,
-        setFolderPinned: SetFolderPinnedUseCase
+        setFolderPinned: SetFolderPinnedUseCase,
+        setFolderLocked: SetFolderLockedUseCase
     ) {
         self.observeRootFolders = observeRootFolders
         self.setFolderListSort = setFolderListSort
@@ -54,6 +58,7 @@ final class FolderListViewModel {
         self.moveFolderToTrash = moveFolderToTrash
         self.restoreFolder = restoreFolder
         self.setFolderPinned = setFolderPinned
+        self.setFolderLocked = setFolderLocked
     }
 
     func events() -> AsyncStream<FolderListEvent> { eventChannel.stream() }
@@ -126,6 +131,16 @@ final class FolderListViewModel {
             try await setFolderPinned(folderId: folder.id, pinned: pinned)
         } catch {
             AppLog.error("ピン留めを変えられなかった: \(error)")
+        }
+    }
+
+    /// ロックの付け外し（外すときの認証・ロックするときのパスコードの確認は画面側で済ませてから呼ぶ）。
+    func onSetLocked(_ folder: Folder, locked: Bool) async {
+        do {
+            try await setFolderLocked(folderId: folder.id, locked: locked)
+            eventChannel.send(.showLockChanged(locked: locked))
+        } catch {
+            AppLog.error("ロックを変えられなかった: \(error)")
         }
     }
 

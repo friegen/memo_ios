@@ -16,6 +16,11 @@ struct FolderDetailUiState: Equatable {
     /// この中にフォルダを作れるか（最大の階層ではもう作れない）。
     var canCreateFolder: Bool { ancestors.count + 1 < FolderPolicy.maxDepth }
 
+    /// 中身を見せる前に認証が要るフォルダ（ロックしている上の階層と、このフォルダ）。空なら認証は要らない
+    var lockedFolderIds: [Int64] {
+        ancestors.filter(\.isLocked).map(\.id) + (folder?.isLocked == true ? [folder!.id] : [])
+    }
+
     /// 読み込みが終わって中身が空のときだけ「このフォルダは空です」を出す。
     var showEmpty: Bool { !isLoading && folders.isEmpty && memos.isEmpty }
 }
@@ -35,6 +40,8 @@ enum FolderDetailEvent: Equatable, Sendable {
     case close
     /// フォルダの作成のシートを出す
     case showCreateFolderSheet
+    /// ロックを付けた／外したことを知らせる。
+    case showLockChanged(locked: Bool)
 }
 
 /// フォルダの中（フォルダを上、メモを下に並べる）の ViewModel（Android 版の FolderDetailViewModel にあたる）。
@@ -61,6 +68,8 @@ final class FolderDetailViewModel {
     private let moveMemoToFolder: MoveMemoToFolderUseCase
     private let setMemoPinned: SetMemoPinnedUseCase
     private let setFolderPinned: SetFolderPinnedUseCase
+    private let setMemoLocked: SetMemoLockedUseCase
+    private let setFolderLocked: SetFolderLockedUseCase
     @ObservationIgnored private let eventChannel = EventChannel<FolderDetailEvent>()
     @ObservationIgnored private var hasClosed = false
 
@@ -82,7 +91,9 @@ final class FolderDetailViewModel {
         restoreMemo: RestoreMemoUseCase,
         moveMemoToFolder: MoveMemoToFolderUseCase,
         setMemoPinned: SetMemoPinnedUseCase,
-        setFolderPinned: SetFolderPinnedUseCase
+        setFolderPinned: SetFolderPinnedUseCase,
+        setMemoLocked: SetMemoLockedUseCase,
+        setFolderLocked: SetFolderLockedUseCase
     ) {
         self.folderId = folderId
         self.observeFolder = observeFolder
@@ -102,6 +113,8 @@ final class FolderDetailViewModel {
         self.moveMemoToFolder = moveMemoToFolder
         self.setMemoPinned = setMemoPinned
         self.setFolderPinned = setFolderPinned
+        self.setMemoLocked = setMemoLocked
+        self.setFolderLocked = setFolderLocked
     }
 
     func events() -> AsyncStream<FolderDetailEvent> { eventChannel.stream() }
@@ -261,6 +274,26 @@ final class FolderDetailViewModel {
             try await restoreMemo(memoId: memoId)
         } catch {
             AppLog.error("メモを元に戻せなかった: \(error)")
+        }
+    }
+
+    /// メモのロックの付け外し（外すときの認証・ロックするときのパスコードの確認は画面側で済ませてから呼ぶ）。
+    func onSetMemoLocked(_ memo: MemoSummary, locked: Bool) async {
+        do {
+            try await setMemoLocked(memoId: memo.id, locked: locked)
+            eventChannel.send(.showLockChanged(locked: locked))
+        } catch {
+            AppLog.error("ロックを変えられなかった: \(error)")
+        }
+    }
+
+    /// 中のフォルダのロックの付け外し。
+    func onSetFolderLocked(_ folder: Folder, locked: Bool) async {
+        do {
+            try await setFolderLocked(folderId: folder.id, locked: locked)
+            eventChannel.send(.showLockChanged(locked: locked))
+        } catch {
+            AppLog.error("ロックを変えられなかった: \(error)")
         }
     }
 

@@ -15,6 +15,8 @@ struct MemoListUiState: Equatable {
 enum MemoListEvent: Equatable, Sendable {
     /// ゴミ箱に移したことを知らせ、「元に戻す」を出す。
     case showMovedToTrash(memoId: Int64)
+    /// ロックを付けた／外したことを知らせる。
+    case showLockChanged(locked: Bool)
 }
 
 /// メモタブ（メモ一覧）の ViewModel（Android 版の MemoListViewModel にあたる）。
@@ -27,6 +29,7 @@ final class MemoListViewModel {
     private let moveMemoToTrash: MoveMemoToTrashUseCase
     private let restoreMemo: RestoreMemoUseCase
     private let setMemoPinned: SetMemoPinnedUseCase
+    private let setMemoLocked: SetMemoLockedUseCase
     @ObservationIgnored private let eventChannel = EventChannel<MemoListEvent>()
 
     init(
@@ -34,13 +37,15 @@ final class MemoListViewModel {
         setMemoTabSort: SetMemoTabSortUseCase,
         moveMemoToTrash: MoveMemoToTrashUseCase,
         restoreMemo: RestoreMemoUseCase,
-        setMemoPinned: SetMemoPinnedUseCase
+        setMemoPinned: SetMemoPinnedUseCase,
+        setMemoLocked: SetMemoLockedUseCase
     ) {
         self.observeMemoTabMemos = observeMemoTabMemos
         self.setMemoTabSort = setMemoTabSort
         self.moveMemoToTrash = moveMemoToTrash
         self.restoreMemo = restoreMemo
         self.setMemoPinned = setMemoPinned
+        self.setMemoLocked = setMemoLocked
     }
 
     /// 一回きりのイベント（View の `.task` で受け取る）。
@@ -84,6 +89,16 @@ final class MemoListViewModel {
             try await setMemoPinned(memoId: memo.id, pinned: pinned)
         } catch {
             AppLog.error("ピン留めを変えられなかった: \(error)")
+        }
+    }
+
+    /// ロックの付け外し（外すときの認証・ロックするときのパスコードの確認は画面側で済ませてから呼ぶ）。
+    func onSetLocked(_ memo: MemoSummary, locked: Bool) async {
+        do {
+            try await setMemoLocked(memoId: memo.id, locked: locked)
+            eventChannel.send(.showLockChanged(locked: locked))
+        } catch {
+            AppLog.error("ロックを変えられなかった: \(error)")
         }
     }
 }

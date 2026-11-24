@@ -24,6 +24,7 @@ struct MemoEditViewModelTests {
             revertMemo: container.makeRevertMemoUseCase(),
             discardMemo: container.makeDiscardMemoUseCase(),
             observeEditorSettings: container.makeObserveEditorSettingsUseCase(),
+            getFolderPath: container.makeGetFolderPathUseCase(),
             autoSaveDelay: autoSaveDelay)
     }
 
@@ -232,5 +233,34 @@ struct MemoEditViewModelTests {
         container.settingsRepository.setFontSize(.extraLarge)
 
         try await waitUntil { viewModel.uiState.editorSettings.fontSize == .extraLarge }
+    }
+
+    /// ロックしたメモ・ロックしたフォルダの中のメモは、守る必要がある（画面が認証してから本文を見せる）。
+    @Test func lockState_isLoaded() async throws {
+        let folder = try await container.folderRepository.createFolder(parentId: nil, name: "秘密", color: .default, now: 1)
+        try await container.folderRepository.setLocked(id: folder, locked: true)
+        let lockedMemo = try await container.memoRepository.createMemo(folderId: nil, html: "a", plainText: "a", now: 2)
+        try await container.memoRepository.setLocked(id: lockedMemo, locked: true)
+        let memoInFolder = try await container.memoRepository.createMemo(folderId: folder, html: "b", plainText: "b", now: 3)
+        let plainMemo = try await container.memoRepository.createMemo(folderId: nil, html: "c", plainText: "c", now: 4)
+
+        let locked = makeViewModel(memoId: lockedMemo)
+        await locked.load()
+        #expect(locked.uiState.isLocked)
+        #expect(locked.uiState.isProtected)
+
+        let inFolder = makeViewModel(memoId: memoInFolder, folderId: folder)
+        await inFolder.load()
+        #expect(!inFolder.uiState.isLocked)
+        #expect(inFolder.uiState.lockedFolderIds == [folder])
+
+        let plain = makeViewModel(memoId: plainMemo)
+        await plain.load()
+        #expect(!plain.uiState.isProtected)
+
+        // ロックしたフォルダの中に新しく作るメモも守る
+        let newInFolder = makeViewModel(folderId: folder)
+        await newInFolder.load()
+        #expect(newInFolder.uiState.lockedFolderIds == [folder])
     }
 }

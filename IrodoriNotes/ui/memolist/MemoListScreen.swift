@@ -4,12 +4,15 @@ import SwiftUI
 struct MemoListScreen: View {
     @Binding var path: NavigationPath
     @State private var viewModel: MemoListViewModel
+    @State private var isPasscodeAlertShown = false
     @Bindable private var messageCenter: MessageCenter
+    private let authenticator: DeviceAuthenticator
 
     init(container: AppContainer, path: Binding<NavigationPath>) {
         _path = path
         _viewModel = State(initialValue: container.makeMemoListViewModel())
         messageCenter = container.messageCenter
+        authenticator = container.deviceAuthenticator
     }
 
     var body: some View {
@@ -47,6 +50,7 @@ struct MemoListScreen: View {
                 .accessibilityIdentifier("add_button")
             }
         }
+        .passcodeRequiredAlert(isPresented: $isPasscodeAlertShown)
         .undoBanner($messageCenter.item)
         .task { await viewModel.observe() }
         .task {
@@ -54,7 +58,7 @@ struct MemoListScreen: View {
         }
     }
 
-    /// 長押しメニュー: ピン留め／削除（ロックはステップ9で足す）。
+    /// 長押しメニュー: ピン留め／ロック／削除。
     @ViewBuilder
     private func menu(for memo: MemoSummary) -> some View {
         Button {
@@ -62,10 +66,24 @@ struct MemoListScreen: View {
         } label: {
             Label(memo.isPinned ? LocalizedStringKey("action_unpin") : "action_pin", systemImage: memo.isPinned ? "pin.slash" : "pin")
         }
+        LockMenuButton(isLocked: memo.isLocked) {
+            changeLock(currentlyLocked: memo.isLocked) { await viewModel.onSetLocked(memo, locked: $0) }
+        }
         Button(role: .destructive) {
             Task { await viewModel.onDeleteClick(memo) }
         } label: {
             Label("action_delete", systemImage: "trash")
+        }
+    }
+
+    /// 長押しメニューの「ロックする／ロックを外す」。外すときは認証、ロックするときはパスコードがあるか確かめてから。
+    private func changeLock(currentlyLocked: Bool, apply: @escaping (Bool) async -> Void) {
+        Task {
+            switch await authenticator.confirmLockChange(currentlyLocked: currentlyLocked) {
+            case .apply(let locked): await apply(locked)
+            case .cancelled: break
+            case .passcodeRequired: isPasscodeAlertShown = true
+            }
         }
     }
 
@@ -75,6 +93,8 @@ struct MemoListScreen: View {
             messageCenter.show(L10n.string("memo_moved_to_trash")) {
                 Task { await viewModel.onUndoDelete(memoId: memoId) }
             }
+        case .showLockChanged(let locked):
+            messageCenter.show(L10n.string(locked ? "lock_done" : "unlock_done"))
         }
     }
 }

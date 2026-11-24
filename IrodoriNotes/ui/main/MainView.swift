@@ -16,6 +16,7 @@ struct MainView: View {
     @State private var memoPath = NavigationPath()
     @State private var folderPath = NavigationPath()
     @State private var settingsPath = NavigationPath()
+    @Environment(\.scenePhase) private var scenePhase
 
     init(container: AppContainer) {
         self.container = container
@@ -42,6 +43,16 @@ struct MainView: View {
                         .navigationDestination(for: AppRoute.self) { destination($0, path: $settingsPath) }
                 }
             }
+        }
+        .overlay {
+            // ロックした中身を表示している間は、アプリの切り替え画面に中身を映さない（アプリから離れかけたら覆う）
+            if container.lockSession.protectedScreenCount > 0, scenePhase != .active, !container.lockSession.isAuthenticating {
+                PrivacyCover()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // アプリから離れたら、ロックしたものをすべてロックし直す（Face ID の画面・通知センターでは .inactive なのでロックしない）
+            if phase == .background { container.lockSession.onEnterBackground() }
         }
         .background(WindowThemeApplier(mode: viewModel.uiState.themeMode))
         .task { await viewModel.observe() }

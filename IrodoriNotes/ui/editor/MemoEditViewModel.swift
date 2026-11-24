@@ -9,6 +9,13 @@ struct MemoEditUiState: Equatable {
     /// 文字を選んでいる間だけ、選んだ範囲の文字数（改行は数えない）。選んでいなければ nil
     var selectedCharCount: Int?
     var editorSettings = EditorSettings()
+    /// このメモ自体をロックしているか（開くたびに認証する）
+    var isLocked = false
+    /// ロックしている上の階層のフォルダ（フォルダに入るときに認証していれば、もう一度は聞かない）
+    var lockedFolderIds: [Int64] = []
+
+    /// 本文を見せる前に認証が要るか（このメモか上の階層がロックされている）。
+    var isProtected: Bool { isLocked || !lockedFolderIds.isEmpty }
 
     /// 本文が空か（「何か書いてください」の案内を出す）。
     var isEmpty: Bool { !isLoading && lineCount == 0 }
@@ -76,6 +83,7 @@ final class MemoEditViewModel {
     private let revertMemo: RevertMemoUseCase
     private let discardMemo: DiscardMemoUseCase
     private let observeEditorSettings: ObserveEditorSettingsUseCase
+    private let getFolderPath: GetFolderPathUseCase
 
     init(
         memoId: Int64?,
@@ -86,6 +94,7 @@ final class MemoEditViewModel {
         revertMemo: RevertMemoUseCase,
         discardMemo: DiscardMemoUseCase,
         observeEditorSettings: ObserveEditorSettingsUseCase,
+        getFolderPath: GetFolderPathUseCase,
         autoSaveDelay: Duration = MemoEditViewModel.autoSaveDelay
     ) {
         self.memoId = memoId
@@ -97,6 +106,7 @@ final class MemoEditViewModel {
         self.revertMemo = revertMemo
         self.discardMemo = discardMemo
         self.observeEditorSettings = observeEditorSettings
+        self.getFolderPath = getFolderPath
         self.autoSaveDelay = autoSaveDelay
     }
 
@@ -107,6 +117,14 @@ final class MemoEditViewModel {
         guard !hasStartedLoading else { return }
         hasStartedLoading = true
         guard let id = memoId else {
+            // 新しいメモ: 作るフォルダ（とその上の階層）がロックされていれば守る
+            if let folderId {
+                do {
+                    uiState.lockedFolderIds = try await getFolderPath(folderId: folderId).filter(\.isLocked).map(\.id)
+                } catch {
+                    AppLog.error("フォルダの階層を読めなかった: \(error)")
+                }
+            }
             uiState.isLoading = false
             isLoaded = true
             eventChannel.send(.setInitialText(html: "", isNewMemo: true))
@@ -120,6 +138,8 @@ final class MemoEditViewModel {
             original = memo
             lastSavedHtml = memo.html
             setPlainText(memo.plainText)
+            uiState.isLocked = memo.isLocked
+            uiState.lockedFolderIds = memo.lockedFolderIds
             uiState.isLoading = false
             updateCounts(memo.plainText)
             isLoaded = true

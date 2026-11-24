@@ -120,6 +120,66 @@
           }
         }
       }
+    },
+    "NSFaceIDUsageDescription": {
+      "comment": "Face ID を初めて使うときの許可のダイアログに出る、使う理由",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID wird verwendet, um gesperrte Notizen und Ordner zu öffnen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID is used to open locked notes and folders."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID se usa para abrir las notas y carpetas bloqueadas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID est utilisé pour ouvrir les notes et dossiers verrouillés."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID digunakan untuk membuka catatan dan folder yang dikunci."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックしたメモとフォルダを開くときに Face ID を使います。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠긴 메모와 폴더를 열 때 Face ID를 사용합니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Face ID é usado para abrir notas e pastas bloqueadas."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟已鎖定的記事和資料夾時會使用 Face ID。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -163,4 +163,42 @@ struct FolderDetailViewModelTests {
         // メモタブの並び順は変わらない（フォルダ内のメモの並び順は別に持つ）
         #expect(try await container.settingsRepository.observeMemoTabSort().firstValue() == MemoSort())
     }
+
+    /// 認証が要るフォルダ: ロックしている上の階層と、このフォルダ。
+    @Test func lockedFolderIdsIncludeLockedAncestorsAndSelf() async throws {
+        let top = try await folders.createFolder(parentId: nil, name: "上", color: .default, now: 1)
+        let middle = try await folders.createFolder(parentId: top, name: "中", color: .default, now: 2)
+        let bottom = try await folders.createFolder(parentId: middle, name: "下", color: .default, now: 3)
+        try await folders.setLocked(id: top, locked: true)
+        try await folders.setLocked(id: bottom, locked: true)
+
+        let (viewModel, task) = start(bottom)
+        defer { task.cancel() }
+        try await waitUntil { !viewModel.uiState.isLoading }
+        #expect(viewModel.uiState.lockedFolderIds == [top, bottom])
+
+        let (middleViewModel, middleTask) = start(middle)
+        defer { middleTask.cancel() }
+        try await waitUntil { !middleViewModel.uiState.isLoading }
+        #expect(middleViewModel.uiState.lockedFolderIds == [top])
+    }
+
+    /// 中のメモ・フォルダのロックの付け外し。
+    @Test func lockMemoAndFolderInside() async throws {
+        let parent = try await folders.createFolder(parentId: nil, name: "親", color: .default, now: 1)
+        _ = try await folders.createFolder(parentId: parent, name: "子", color: .default, now: 2)
+        _ = try await memos.createMemo(folderId: parent, html: "m", plainText: "m", now: 3)
+        let (viewModel, task) = start(parent)
+        defer { task.cancel() }
+        try await waitUntil { !viewModel.uiState.isLoading }
+        var events = viewModel.events().makeAsyncIterator()
+
+        await viewModel.onSetMemoLocked(try #require(viewModel.uiState.memos.first), locked: true)
+        #expect(await events.next() == .showLockChanged(locked: true))
+        await viewModel.onSetFolderLocked(try #require(viewModel.uiState.folders.first), locked: true)
+        #expect(await events.next() == .showLockChanged(locked: true))
+
+        try await waitUntil { viewModel.uiState.memos.first?.isLocked == true && viewModel.uiState.folders.first?.isLocked == true }
+        #expect(viewModel.uiState.lockedFolderIds.isEmpty) // 中のものをロックしても、このフォルダは守らない
+    }
 }

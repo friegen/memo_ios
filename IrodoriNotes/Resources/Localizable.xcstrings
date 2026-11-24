@@ -1,6 +1,7 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "": {},
     "action_add": {
       "extractionState": "manual",
       "localizations": {
@@ -709,6 +710,65 @@
         }
       }
     },
+    "action_lock": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sperren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verrouiller"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックする"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠그기"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鎖定"
+          }
+        }
+      }
+    },
     "action_move": {
       "extractionState": "manual",
       "localizations": {
@@ -1118,6 +1178,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "復原"
+          }
+        }
+      }
+    },
+    "action_unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouiller"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buka kunci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを外す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠금 해제"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解除鎖定"
           }
         }
       }
@@ -4214,6 +4333,65 @@
         }
       }
     },
+    "folder_locked_placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Ordner ist gesperrt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This folder is locked."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta carpeta está bloqueada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce dossier est verrouillé."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder ini terkunci."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このフォルダはロックされています"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠긴 폴더입니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta pasta está bloqueada."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這個資料夾已鎖定。"
+          }
+        }
+      }
+    },
     "folder_moved_to_trash": {
       "extractionState": "manual",
       "localizations": {
@@ -5276,6 +5454,124 @@
         }
       }
     },
+    "lock_auth_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouiller"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buka kunci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを解除"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠금 해제"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解除鎖定"
+          }
+        }
+      }
+    },
+    "lock_done": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesperrt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verrouillé"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikunci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックしました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠갔습니다"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已鎖定"
+          }
+        }
+      }
+    },
     "lock_icon_description": {
       "extractionState": "manual",
       "localizations": {
@@ -5331,6 +5627,126 @@
           "stringUnit": {
             "state": "translated",
             "value": "已鎖定"
+          }
+        }
+      }
+    },
+    "lock_passcode_required_message_ios": {
+      "comment": "iOS だけの文言。パスコードの設定場所の案内（iOS ではアプリからその設定画面を開けないので、場所を文で伝える）",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um Sperren zu verwenden, richte auf deinem iPhone unter Einstellungen > Face ID & Code (oder Touch ID & Code) einen Code ein. Danach kannst du auch mit Face ID oder Touch ID entsperren.\n\nGesperrte Notizen und Ordner werden nicht gelöscht. Du kannst sie wieder öffnen, sobald du einen Code eingerichtet hast."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To use locks, set a passcode on your iPhone in Settings > Face ID & Passcode (or Touch ID & Passcode). You can then also unlock with Face ID or Touch ID.\n\nLocked notes and folders aren’t deleted, and you can open them again after you set a passcode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para usar los bloqueos, configura un código en tu iPhone en Ajustes > Face ID y código (o Touch ID y código). Después también podrás desbloquear con Face ID o Touch ID.\n\nLas notas y carpetas bloqueadas no se eliminan, y podrás abrirlas de nuevo cuando configures un código."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour utiliser le verrouillage, définissez un code sur votre iPhone dans Réglages > Face ID et code (ou Touch ID et code). Vous pourrez ensuite aussi déverrouiller avec Face ID ou Touch ID.\n\nLes notes et dossiers verrouillés ne sont pas supprimés : vous pourrez les ouvrir à nouveau après avoir défini un code."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untuk menggunakan kunci, atur kode sandi di iPhone Anda melalui Pengaturan > Face ID & Kode Sandi (atau Touch ID & Kode Sandi). Setelah itu, Anda juga dapat membuka kunci dengan Face ID atau Touch ID.\n\nCatatan dan folder yang terkunci tidak dihapus, dan Anda dapat membukanya lagi setelah mengatur kode sandi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを使うには、設定アプリの「Face ID とパスコード」（または「Touch ID とパスコード」）で iPhone のパスコードを設定してください。Face ID や Touch ID での解除も使えるようになります。\n\nロックしたメモやフォルダは消えません。パスコードを設定し直せば開けます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠금 기능을 사용하려면 설정 > Face ID 및 암호(또는 Touch ID 및 암호)에서 iPhone 암호를 설정하세요. 설정하면 Face ID나 Touch ID로도 잠금을 해제할 수 있습니다.\n\n잠긴 메모와 폴더는 삭제되지 않으며, 암호를 설정하면 다시 열 수 있습니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para usar bloqueios, defina um código no iPhone em Ajustes > Face ID e Código (ou Touch ID e Código). Depois, você também poderá desbloquear com o Face ID ou o Touch ID.\n\nNotas e pastas bloqueadas não são excluídas, e você poderá abri-las novamente depois de definir um código."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如要使用鎖定功能，請前往「設定」>「Face ID 與密碼」（或「Touch ID 與密碼」）為 iPhone 設定密碼。設定後，也可以使用 Face ID 或 Touch ID 解除鎖定。\n\n已鎖定的記事和資料夾不會被刪除，設定密碼後就能再次開啟。"
+          }
+        }
+      }
+    },
+    "lock_passcode_required_title_ios": {
+      "comment": "iOS だけの文言。ロックを使おうとしたが端末にパスコードがないときの案内の題名（Android の lock_screen_lock_required_title の代わり）",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code erforderlich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passcode required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se necesita un código"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code requis"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kode sandi diperlukan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パスコードが必要です"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "암호 필요"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código necessário"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要設定密碼"
           }
         }
       }
@@ -5610,6 +6026,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "還沒有記事。\n輕觸「+」即可建立。"
+          }
+        }
+      }
+    },
+    "memo_locked_placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Notiz ist gesperrt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This note is locked."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta nota está bloqueada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette note est verrouillée."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catatan ini terkunci."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このメモはロックされています"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠긴 메모입니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta nota está bloqueada."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這則記事已鎖定。"
           }
         }
       }
@@ -9370,6 +9845,65 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "unlock_done": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperrt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouillé"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci dibuka"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ロックを外しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠금을 해제했습니다"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueado"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解除鎖定"
           }
         }
       }

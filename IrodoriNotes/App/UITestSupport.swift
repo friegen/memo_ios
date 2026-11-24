@@ -6,10 +6,13 @@ import GRDB
 ///
 /// UI テストは起動の引数で次を指定する:
 /// - `-ui-testing`: メモリ上の DB と、空の別の保存先の設定を使う（シミュレーターに入っているデータを使わない・消さない）
-/// - `-ui-test-seed memos` / `folders` / `deep` / `trash`: ダミーのメモ・フォルダ・5階層のフォルダ・ゴミ箱の中身を入れて起動する
+/// - `-ui-test-seed memos` / `folders` / `deep` / `trash` / `locked`: ダミーのメモ・フォルダ・5階層のフォルダ・ゴミ箱の中身・ロックしたものを入れて起動する
+/// - `-ui-test-auth success` / `cancel` / `unavailable`: 端末の認証（Face ID など）の結果を決める（既定は success）。
+///   UI テストからは Face ID の画面を操作できないため
 enum UITestSupport {
     static let uiTestingArgument = "-ui-testing"
     static let seedArgument = "-ui-test-seed"
+    static let authArgument = "-ui-test-auth"
 
     static func makeContainerIfRequested(arguments: [String] = ProcessInfo.processInfo.arguments) -> AppContainer? {
         guard arguments.contains(uiTestingArgument) else { return nil }
@@ -21,7 +24,10 @@ enum UITestSupport {
             if let index = arguments.firstIndex(of: seedArgument), index + 1 < arguments.count {
                 try seed(arguments[index + 1], into: database)
             }
-            return AppContainer(database: database, defaults: defaults)
+            let auth = arguments.firstIndex(of: authArgument).flatMap { $0 + 1 < arguments.count ? arguments[$0 + 1] : nil }
+            return AppContainer(database: database, defaults: defaults) { lockSession in
+                UITestAuthenticator(lockSession: lockSession, result: auth ?? "success")
+            }
         } catch {
             fatalError("UI テスト用の DB を作れませんでした: \(error)")
         }
@@ -93,9 +99,39 @@ enum UITestSupport {
                 try memo("Packing list", folderId: travel, deletedAt: now - 2 * hour, withFolder: true)
                 try memo("Itinerary", folderId: travel, deletedAt: now - 3 * hour)
             }
+        case "locked":
+            // ロックしたもの: Secret（メモタブのロックしたメモ）/ Note（ふつうのメモ）/ Private（ロックしたフォルダ。中にメモ Diary とフォルダ Inner）
+            try database.writer.write { db in
+                func memo(_ text: String, folderId: Int64?, locked: Bool, time: Int64) throws {
+                    _ = try MemoDao.insert(db, MemoRecord(
+                        folderId: folderId, html: text, plainText: text, firstLine: text, charCount: CharCounter.countChars(text),
+                        createdAt: time, updatedAt: time, isLocked: locked))
+                }
+                try memo("Secret", folderId: nil, locked: true, time: base + hour)
+                try memo("Note", folderId: nil, locked: false, time: base)
+                let privateFolder = try FolderDao.insert(db, FolderRecord(
+                    parentId: nil, name: "Private", colorKey: FolderColor.purple.rawValue, createdAt: base, updatedAt: base,
+                    isLocked: true))
+                _ = try FolderDao.insert(db, FolderRecord(
+                    parentId: privateFolder, name: "Inner", colorKey: FolderColor.default.rawValue, createdAt: base, updatedAt: base))
+                try memo("Diary", folderId: privateFolder, locked: false, time: base)
+            }
         default:
             fatalError("知らないダミーデータ: \(name)")
         }
     }
+}
+/// UI テスト用の端末の認証。Face ID の画面を出さず、起動の引数で決めた結果を返す。
+final class UITestAuthenticator: DeviceAuthenticator {
+    private let result: String
+
+    init(lockSession: LockSession, result: String) {
+        self.result = result
+        super.init(lockSession: lockSession)
+    }
+
+    override func isAvailable() -> Bool { result != "unavailable" }
+
+    override func authenticate() async -> Bool { result == "success" }
 }
 #endif

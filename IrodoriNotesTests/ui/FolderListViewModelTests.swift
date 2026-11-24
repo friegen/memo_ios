@@ -99,4 +99,15 @@ struct FolderListViewModelTests {
 
         try await waitUntil { viewModel.uiState.folders.map(\.id) == [older, newer] }
     }
+
+    @Test func lockAndUnlock() async throws {
+        defer { observeTask.cancel() }
+        let id = try await container.folderRepository.createFolder(parentId: nil, name: "秘密", color: .default, now: 1)
+        try await waitUntil { viewModel.uiState.folders.count == 1 }
+        var events = viewModel.events().makeAsyncIterator()
+
+        await viewModel.onSetLocked(try await folder(id), locked: true)
+        #expect(await events.next() == .showLockChanged(locked: true))
+        try await waitUntil { viewModel.uiState.folders.first?.isLocked == true }
+    }
 }
