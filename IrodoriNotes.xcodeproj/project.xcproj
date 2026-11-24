@@ -98,6 +98,7 @@
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_FILE": "Config/Info.plist",
         "INFOPLIST_KEY_CFBundleDisplayName": "Irodori Notes",
+        "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
         "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.productivity",
         "INFOPLIST_KEY_NSFaceIDUsageDescription": "Face ID is used to open locked notes and folders.",
         "INFOPLIST_KEY_NSUserTrackingUsageDescription": "This identifier will be used to show you ads that are more relevant to you.",

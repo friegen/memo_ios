@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    プライバシーマニフェスト（アプリが使う「理由の申告が必要な API」と、集めるデータを Apple に申告するファイル。Android にはないもの）。
+    ここに書くのはアプリ自身のコードの分だけ。広告の SDK（Google Mobile Ads・UMP）と GRDB は、それぞれ自分のマニフェストを持っていて、
+    ビルドするとまとめて申告される。
+    - アプリ自身はデータを集めず、外に送らない（メモは端末の中だけ）。トラッキングもしない（広告の SDK の分は SDK のマニフェスト）
+    - UserDefaults: 設定・広告とレビューのお願いの記録を、このアプリの中だけで読み書きする（CA92.1）
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
