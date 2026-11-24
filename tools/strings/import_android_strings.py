@@ -6,7 +6,7 @@ Android 版の strings.xml（9言語）から、指定した name の文字列�
 
 - 取り込み元: Android 版の読む専用のコピー（ANDROID_RES）。取り込み先: IrodoriNotes/Resources/Localizable.xcstrings
 - キーは Android の name と同じ。すでにあるキーは上書きする
-- Android の書き方を iOS に合わせる: %1$s → %1$@、%1$d → %1$lld、\\n → 改行、\\' → '、前後の "..." を外す
+- Android の書き方を iOS に合わせる: %1$s → %1$@、%1$d → %1$lld、\\n → 改行、\\' → '、\\u2019 → ’、前後の "..." を外す
 - plurals は String Catalog の複数形（plural）にする。中の %s は数値の %lld にする（L10n.count で3桁区切りを付ける）
 - translatable="false" のものは英語の値を全言語に入れる（LocalizationTests が全言語にキーがあることを確かめるため）
 """
@@ -29,6 +29,7 @@ def convert(text: str) -> str:
     if len(text) >= 2 and text.startswith('"') and text.endswith('"'):
         text = text[1:-1]
     text = re.sub(r"\s*\n\s*", " ", text)  # XML 上の改行は空白1つ（Android と同じ）
+    text = re.sub(r"\\u([0-9A-Fa-f]{4})", lambda m: chr(int(m.group(1), 16)), text)  # \u2019 などの文字コード
     text = (text.replace("\\n", "\n").replace("\\'", "'").replace('\\"', '"').replace("\\@", "@").replace("\\?", "?"))
     text = re.sub(r"%(\d+\$)?s", lambda m: f"%{m.group(1) or ''}@", text)
     text = re.sub(r"%(\d+\$)?d", lambda m: f"%{m.group(1) or ''}lld", text)

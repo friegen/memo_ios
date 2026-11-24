@@ -95,7 +95,8 @@ tools/                # アイコンの作り直し（icon/）、Android の訳�
 - **広告**: 出し方の値（間隔・回数など）は `domain/model/AdPolicy.swift` だけで変える。AdMob の ID はビルド構成ごとの設定（xcconfig）に書く。広告の SDK は単体テストでは動かさない（広告まわりのロジックは AdPolicy と ViewModel でテストする）
 - **レビューのお願い**: 回数は `domain/model/ReviewPolicy.swift` で変える。Apple の決まりで独自のレビュー依頼ダイアログは出さず、`requestReview` を使う（`docs/requirements.md`）
 - **ロック**: 端末の認証（LocalAuthentication。Face ID / Touch ID → だめならパスコード）。ロックを外している状態はアプリで1つの `LockSession`（アプリから離れたらすべてロックし直す）。ロックした中身を表示している間は、アプリの切り替え画面に中身を映さない。画面を隠すだけで暗号化はしない
-- **出力**: PDF・画像・テキスト・HTML。ファイルは一時フォルダの `exports/` に作り、共有シートで渡す
+- **出力**: PDF・画像・テキスト・HTML（`ui/editor/export/`）。ファイルは一時フォルダの `exports/` に作り、共有シートで渡す（`ui/common/SystemScreens.swift`）
+- **ロック**: 状態は `container.lockSession`、認証は `container.deviceAuthenticator`（UI テストでは `-ui-test-auth success / cancel / unavailable` で結果を決める）
 - **テスト**: UseCase / Repository / 文字数の数え方 / HTML の変換などのロジックは単体テストを書く（DB はメモリ上の GRDB で試す）。画面の流れは UI テストで確かめる
   - 単体テストは `IrodoriNotesTests/testutil/TestHelpers.swift` の `makeTestContainer()`（メモリ上の DB・別の保存先の UserDefaults・固定の時計）を使う。ViewModel の非同期の変化は `waitUntil { ... }` で待つ
   - UI テストは起動の引数 `-ui-testing`（メモリ上の DB）と `-ui-test-seed <名前>`（ダミーデータ。`App/UITestSupport.swift`）を使う。シミュレーターに入っているデータには触れない

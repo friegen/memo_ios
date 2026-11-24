@@ -22,6 +22,8 @@ final class AppContainer {
     let lockSession = LockSession()
     /// 端末の認証（Face ID / Touch ID・パスコード）
     let deviceAuthenticator: DeviceAuthenticator
+    /// メモの出力（PDF・画像・テキスト・HTML のファイルを作る）
+    let memoExporter = MemoExporter()
 
     /// - Parameter makeAuthenticator: UI テストでは認証の結果を決めて返すものに差し替える
     init(

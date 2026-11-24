@@ -47,6 +47,11 @@ final class MemoEditorController {
         updateTypingAttributes()
     }
 
+    /// 今の本文の写し（出力用。保存前の変更も含む）。作っている間に書き換わらないよう写しを渡す。
+    func contentSnapshot() -> NSAttributedString? {
+        textView.map { NSAttributedString(attributedString: $0.attributedText) }
+    }
+
     /// キーボードを出す（新しいメモを開いたとき）。
     func focus() {
         textView?.becomeFirstResponder()

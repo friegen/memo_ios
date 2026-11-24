@@ -5,6 +5,7 @@ import SwiftUI
 /// - ナビゲーションバー: 戻る・文字数（タイトル）・行数または選んだ範囲の文字数（サブタイトル）・キーボードを閉じる
 /// - 開いたときからあるメモを空にして戻るときは確認ダイアログ（このときは左端からのスワイプで戻らず、ダイアログを出す）
 /// - ロックしたメモ（ロックしたフォルダの中のメモも）は、認証するまで本文を隠す（`applyLock`）
+/// - 出力: 形式を選ぶ → ファイルを作って共有シートを出す（キーボードが出ている間は、同じ場所が「キーボードを閉じる」になる）
 struct MemoEditScreen: View {
     @State private var viewModel: MemoEditViewModel
     @State private var controller = MemoEditorController()
@@ -17,7 +18,11 @@ struct MemoEditScreen: View {
     @State private var isUnlockPromptShowing = false
     @State private var isPasscodeAlertShown = false
     @State private var holdsProtectedScreen = false
+    /// 出力する本文の写し（形式を選んでいる間）。nil なら形式の選択を出していない
+    @State private var exportText: NSAttributedString?
+    @State private var isExporting = false
     @Bindable private var messageCenter: MessageCenter
+    private let exporter: MemoExporter
     private let lockSession: LockSession
     private let authenticator: DeviceAuthenticator
     @Environment(\.dismiss) private var dismiss
@@ -28,6 +33,7 @@ struct MemoEditScreen: View {
         messageCenter = container.messageCenter
         lockSession = container.lockSession
         authenticator = container.deviceAuthenticator
+        exporter = container.memoExporter
     }
 
     var body: some View {
@@ -84,14 +90,23 @@ struct MemoEditScreen: View {
                         .accessibilityIdentifier("editor_back_button")
                     }
                 }
-                if isKeyboardVisible {
-                    ToolbarItem(placement: .topBarTrailing) {
+                // 書式ボタンの左: キーボードが出ている間は「キーボードを閉じる」、それ以外は「出力」（Android と同じ）
+                ToolbarItem(placement: .topBarTrailing) {
+                    if isKeyboardVisible {
                         Button {
                             controller.hideKeyboard()
                         } label: {
                             Label("action_hide_keyboard", systemImage: "keyboard.chevron.compact.down")
                         }
                         .accessibilityIdentifier("hide_keyboard_button")
+                    } else {
+                        Button {
+                            onExportClick()
+                        } label: {
+                            Label("action_export", systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(isHidden || isExporting)
+                        .accessibilityIdentifier("export_button")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -126,6 +141,29 @@ struct MemoEditScreen: View {
                 Text("editor_empty_message")
             }
             .passcodeRequiredAlert(isPresented: $isPasscodeAlertShown) { dismiss() }
+            .confirmationDialog(
+                "export_title",
+                isPresented: Binding(get: { exportText != nil }, set: { if !$0 { exportText = nil } }),
+                titleVisibility: .visible,
+                presenting: exportText
+            ) { text in
+                ForEach(MemoExportFormat.allCases, id: \.self) { format in
+                    Button(format.labelKey) { export(text, format: format) }
+                }
+                Button("action_cancel", role: .cancel) {}
+            }
+            .overlay {
+                if isExporting {
+                    // 作っている間は「作成しています」を出し、ほかの操作をできなくする
+                    ZStack {
+                        Color.black.opacity(0.2).ignoresSafeArea()
+                        ProgressView { Text("export_in_progress") }
+                            .padding(24)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                    .accessibilityIdentifier("export_progress")
+                }
+            }
             .undoBanner($messageCenter.item)
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
                 isKeyboardVisible = true
@@ -157,6 +195,41 @@ struct MemoEditScreen: View {
             .task {
                 for await event in viewModel.events() { handle(event) }
             }
+    }
+
+    // MARK: 出力（docs/requirements.md「出力」）
+
+    /// 出力する形式を選んでもらう。ロックしたメモで、認証する前（本文を隠している間）は出力しない。
+    private func onExportClick() {
+        let state = viewModel.uiState
+        guard !state.isLoading, isUnlocked(state) else { return }
+        guard let text = controller.contentSnapshot(), !text.string.isBlank else {
+            messageCenter.show(L10n.string("export_empty"))
+            return
+        }
+        exportText = text
+    }
+
+    /// ファイルを作って（作っている間は「作成しています」を出す）、共有シートを出す。
+    private func export(_ text: NSAttributedString, format: MemoExportFormat) {
+        guard !isExporting else { return }
+        isExporting = true
+        let exporter = exporter
+        let defaultFileName = L10n.string("export_default_file_name")
+        Task {
+            // 長いメモでも画面が止まらないよう、別のスレッドで作る
+            let result = await Task.detached(priority: .userInitiated) {
+                try exporter.export(text, format: format, defaultFileName: defaultFileName)
+            }.result
+            isExporting = false
+            switch result {
+            case .success(let files):
+                ShareSheet.present(files)
+            case .failure(let error):
+                AppLog.error("出力できなかった: \(error)")
+                messageCenter.show(L10n.string("export_failed"))
+            }
+        }
     }
 
     // MARK: ロック（docs/requirements.md「ロック」）

@@ -29,6 +29,16 @@ struct LocalizationTests {
         }
     }
 
+    /// Android の strings.xml の書き方（’ などの文字コード・\' など）が、変換されずに残っていない。
+    @Test func noAndroidEscapesRemain() throws {
+        for language in Self.languages {
+            for (key, value) in try strings(language: language, table: "Localizable") {
+                #expect(!value.contains("\\u"), "\(language) の \(key) に \\u が残っている: \(value)")
+                #expect(!value.contains("\\'") && !value.contains("\\\""), "\(language) の \(key) に \\ が残っている: \(value)")
+            }
+        }
+    }
+
     @Test func appNameIsJapaneseOnlyInJapanese() throws {
         for language in Self.languages {
             let expected = language == "ja" ? "いろどりメモ" : "Irodori Notes"
