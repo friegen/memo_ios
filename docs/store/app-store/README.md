@@ -22,7 +22,16 @@ App Store Connect の「App 情報」「（バージョンの）App Store」に�
 - 日本語・英語以外は Claude が作った。公開前にネイティブの人に見てもらえるとより安心
 
 ## スクリーンショット（6.9 インチ・1320×2868。2026-11-24）
-`screenshots/<言語>/01.jpg 〜 07.jpg`（9言語 × 7枚）。App Store Connect のバージョンのページの「iPhone 6.9 インチディスプレイ」に、言語ごとに番号の順で入れる（6.5 インチなどほかの大きさは、6.9 インチの画像から App Store が自動で作る）。
+`screenshots/<言語>/01.jpg 〜 07.jpg`（9言語 × 7枚）。App Store Connect のバージョンのページに、言語ごとに番号の順で入れる。
+
+| App Store Connect の欄 | 大きさ | フォルダ |
+|---|---|---|
+| Dynamic Island 搭載 iPhone（中型ディスプレイ）（**必須**。6.1・6.3 インチ） | 1206×2622 | `screenshots_6.3/<言語>/`（6.9 インチの画像を縮めたもの。`python3 tools/store/make_app_store_6_3.py`） |
+| Dynamic Island 搭載 iPhone（大型ディスプレイ）（任意。6.9 インチ。欄の右上の「メディアマネージャーですべてのサイズを表示」から開く） | 1320×2868 | `screenshots/<言語>/` |
+
+- 2026-11-24 の App Store Connect では、中型ディスプレイの方が必須（片思いチェッカー iOS の提出で分かった）
+- App Store Connect に入れるほかの中身は [../app-store-connect.md](../app-store-connect.md)
+
 Android 版のストアの画像（`store/<言語>/phone_*.png`）と同じ見出し・背景・サンプルのメモで作った。
 
 | # | 画面 | 日本語の見出し |
@@ -45,3 +54,4 @@ Android 版のストアの画像（`store/<言語>/phone_*.png`）と同じ見�
 3. `tools/store/StoreScreenshotTests.swift.txt` を `IrodoriNotesUITests/StoreScreenshotTests.swift` にコピーして撮る（10分ほど）:
    `xcodebuild test -project IrodoriNotes.xcodeproj -scheme IrodoriNotes -destination 'platform=iOS Simulator,name=IrodoriNotes-ProMax,OS=27.2' -derivedDataPath ./build -only-testing:IrodoriNotesUITests/StoreScreenshotTests` → `build/store-screens/`。終わったらコピーしたファイルは消す
 4. `swift tools/store/compose_app_store.swift` → `screenshots/`（見出しはこのファイルの `captions`）
+5. `python3 tools/store/make_app_store_6_3.py` → `screenshots_6.3/`（中型ディスプレイの分）

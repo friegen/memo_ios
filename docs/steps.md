@@ -738,6 +738,7 @@
 4. Claude に伝える → 署名ありのアーカイブができるか確かめる
 
 #### 3. App Store Connect（Google Play Console にあたる。入れるものは片思いチェッカーの `docs/app-store-connect.md` にそろえた）
+**→ 入れる中身（原稿・答え・審査用のメモの英文）は [store/app-store-connect.md](store/app-store-connect.md) にまとめた**（2026-11-24）。スクリーンショットは中型ディスプレイ（1206×2622）が必須なので、その分も `store/app-store/screenshots_6.3/` に作った
 1. **新しいアプリを作る**: 「マイ App」＞「＋」＞「新規 App」
    - プラットフォーム: iOS / 名前: `Irodori Notes - Color Notepad`（使えなければ少し変える）/ プライマリ言語: 英語（または日本語）/ バンドル ID: `xyz.friegen.memo`（上の2の1で登録したもの）/ SKU: 自由（例 `irodori-notes`）
 2. **一般の情報**: カテゴリ「仕事効率化」、著作権 `2026 friegen`、価格 無料、配信する国 すべて、**「Apple シリコン搭載の Mac」「Apple Vision Pro」での配信はチェックを外す**（iPhone だけのアプリ。requirements.md）、App 内課金 なし
