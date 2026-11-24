@@ -60,7 +60,8 @@ struct FolderDetailViewModelTests {
         #expect(fourth.uiState.canCreateFolder)
     }
 
-    @Test func addFolder_showsSheet_thenCreateOpensIt() async throws {
+    /// フォルダの中にフォルダを作るには、まずリワード広告の説明 → 最後まで見たら2つ作れる → 作るとその中へ。
+    @Test func addFolder_offersRewardedAd_thenCreateOpensIt() async throws {
         let hobby = try await folders.createFolder(parentId: nil, name: "趣味", color: .blue, now: 1)
         let (viewModel, task) = start(hobby)
         defer { task.cancel() }
@@ -68,7 +69,11 @@ struct FolderDetailViewModelTests {
         var events = viewModel.events().makeAsyncIterator()
 
         viewModel.onAddFolderClick()
+        #expect(await events.next() == .offerRewardedAd(count: 2))
+
+        viewModel.onRewardedAdResult(.earned)
         #expect(await events.next() == .showCreateFolderSheet)
+        #expect(container.adStateRepository.subfolderCredits == 2)
 
         await viewModel.onCreateFolder(name: "読書", color: .green)
         guard case .openFolder(let id) = await events.next() else {
@@ -76,6 +81,48 @@ struct FolderDetailViewModelTests {
             return
         }
         #expect(try await folders.getPath(id: id).map(\.name) == ["趣味", "読書"])
+        #expect(container.adStateRepository.subfolderCredits == 1)
+
+        // 残りがあるうちは、広告なしで作成のシート
+        viewModel.onAddFolderClick()
+        #expect(await events.next() == .showCreateFolderSheet)
+    }
+
+    /// 途中で閉じたら作れない。出せなかったときは、オフライン・在庫なしなら広告なしで作れる。
+    @Test func rewardedAd_dismissedOrFailed() async throws {
+        let hobby = try await folders.createFolder(parentId: nil, name: "趣味", color: .blue, now: 1)
+        let (viewModel, task) = start(hobby)
+        defer { task.cancel() }
+        try await waitUntil { !viewModel.uiState.isLoading }
+        var events = viewModel.events().makeAsyncIterator()
+
+        viewModel.onRewardedAdResult(.dismissed)
+        viewModel.onRewardedAdResult(.failed(.noFill))
+        #expect(await events.next() == .showCreateFolderSheet) // 閉じたときは何も来ず、在庫なしのぶんだけ来る
+        #expect(container.adStateRepository.subfolderCredits == 0)
+
+        // 広告なしで作ったときは、残りの数は 0 のまま
+        await viewModel.onCreateFolder(name: "読書", color: .green)
+        _ = await events.next()
+        #expect(container.adStateRepository.subfolderCredits == 0)
+    }
+
+    /// オンラインなのに広告のサーバーにつながらない → 広告ブロックをオフにするようお願いする（作れない）。
+    @Test func rewardedAd_networkErrorWhileOnline_asksToDisableAdBlocker() async throws {
+        let online = try makeTestContainer(now: 1_000, online: true).container
+        let folderId = try await online.folderRepository.createFolder(parentId: nil, name: "趣味", color: .blue, now: 1)
+        let viewModel = online.makeFolderDetailViewModel(folderId: folderId)
+        var events = viewModel.events().makeAsyncIterator()
+        viewModel.onRewardedAdResult(.failed(.network))
+        #expect(await events.next() == .askToDisableAdBlocker)
+
+        // オフラインなら、つながらないのは当たり前なので広告なしで作れる
+        let offline = try makeTestContainer(now: 1_000, online: false).container
+        let offlineFolder = try await offline.folderRepository.createFolder(parentId: nil, name: "趣味", color: .blue, now: 1)
+        let offlineViewModel = offline.makeFolderDetailViewModel(folderId: offlineFolder)
+        var offlineEvents = offlineViewModel.events().makeAsyncIterator()
+        offlineViewModel.onRewardedAdResult(.failed(.network))
+        #expect(await offlineEvents.next() == .showCreateFolderSheet)
     }
 
     @Test func moveMemo_toAnotherFolder() async throws {

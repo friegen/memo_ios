@@ -50,7 +50,7 @@ final class FolderDetailUITests: XCTestCase {
         XCTAssertLessThan(folderRow("Sweets").frame.minY, memoRow("Pancakes").frame.minY) // フォルダが上
     }
 
-    /// ＋の「新しいフォルダ」→ 作るとその中へ移り、サブタイトルに上の階層が出る。
+    /// ＋の「新しいフォルダ」→ 広告の説明 →「広告を見る」→ 作るとその中へ移り、サブタイトルに上の階層が出る。
     @MainActor
     func testAddFolderOpensItWithPath() {
         launch(seed: "folders")
@@ -59,6 +59,10 @@ final class FolderDetailUITests: XCTestCase {
 
         app.buttons["add_button"].tap()
         app.buttons["New folder"].tap()
+        // フォルダの中にフォルダを作るときはリワード広告の説明が出る（UI テストでは広告を使わないので、広告なしで作れる）
+        let offer = app.alerts["Create a folder inside a folder"]
+        XCTAssertTrue(offer.waitForExistence(timeout: 5))
+        offer.buttons["Watch ad"].tap()
         let field = app.textFields["folder_name_field"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.typeText("Reading")

@@ -180,6 +180,66 @@
           }
         }
       }
+    },
+    "NSUserTrackingUsageDescription": {
+      "comment": "ATT（トラッキングの許可）のダイアログに出る、広告 ID を使う理由",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Kennung wird verwendet, um dir relevantere Werbung zu zeigen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This identifier will be used to show you ads that are more relevant to you."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este identificador se usará para mostrarte anuncios más relevantes para ti."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet identifiant sera utilisé pour vous montrer des annonces plus pertinentes."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID ini akan digunakan untuk menampilkan iklan yang lebih relevan bagi Anda."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたに合った広告を表示するために使います。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "회원님에게 더 관련성 높은 광고를 표시하는 데 사용됩니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este identificador será usado para mostrar anúncios mais relevantes para você."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此識別碼將用於向你顯示更符合你興趣的廣告。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

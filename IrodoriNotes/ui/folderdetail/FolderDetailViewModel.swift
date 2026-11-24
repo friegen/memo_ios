@@ -42,6 +42,10 @@ enum FolderDetailEvent: Equatable, Sendable {
     case showCreateFolderSheet
     /// ロックを付けた／外したことを知らせる。
     case showLockChanged(locked: Bool)
+    /// 「広告を見ると、フォルダの中にフォルダを count 個作れます」と説明して、見るかどうか選んでもらう。
+    case offerRewardedAd(count: Int)
+    /// 広告を読み込めなかった（広告ブロックの可能性が高い）。オフにしてもう一度試すようお願いする。
+    case askToDisableAdBlocker
 }
 
 /// フォルダの中（フォルダを上、メモを下に並べる）の ViewModel（Android 版の FolderDetailViewModel にあたる）。
@@ -70,6 +74,10 @@ final class FolderDetailViewModel {
     private let setFolderPinned: SetFolderPinnedUseCase
     private let setMemoLocked: SetMemoLockedUseCase
     private let setFolderLocked: SetFolderLockedUseCase
+    private let getSubfolderCredits: GetSubfolderCreditsUseCase
+    private let grantSubfolderCredits: GrantSubfolderCreditsUseCase
+    private let consumeSubfolderCredit: ConsumeSubfolderCreditUseCase
+    private let decideRewardedAdFallback: DecideRewardedAdFallbackUseCase
     @ObservationIgnored private let eventChannel = EventChannel<FolderDetailEvent>()
     @ObservationIgnored private var hasClosed = false
 
@@ -93,7 +101,11 @@ final class FolderDetailViewModel {
         setMemoPinned: SetMemoPinnedUseCase,
         setFolderPinned: SetFolderPinnedUseCase,
         setMemoLocked: SetMemoLockedUseCase,
-        setFolderLocked: SetFolderLockedUseCase
+        setFolderLocked: SetFolderLockedUseCase,
+        getSubfolderCredits: GetSubfolderCreditsUseCase,
+        grantSubfolderCredits: GrantSubfolderCreditsUseCase,
+        consumeSubfolderCredit: ConsumeSubfolderCreditUseCase,
+        decideRewardedAdFallback: DecideRewardedAdFallbackUseCase
     ) {
         self.folderId = folderId
         self.observeFolder = observeFolder
@@ -115,6 +127,10 @@ final class FolderDetailViewModel {
         self.setFolderPinned = setFolderPinned
         self.setMemoLocked = setMemoLocked
         self.setFolderLocked = setFolderLocked
+        self.getSubfolderCredits = getSubfolderCredits
+        self.grantSubfolderCredits = grantSubfolderCredits
+        self.consumeSubfolderCredit = consumeSubfolderCredit
+        self.decideRewardedAdFallback = decideRewardedAdFallback
     }
 
     func events() -> AsyncStream<FolderDetailEvent> { eventChannel.stream() }
@@ -179,9 +195,34 @@ final class FolderDetailViewModel {
 
     /// ＋の「新しいフォルダ」。最大の階層では作れない。
     /// TODO(ステップ11): フォルダの中にフォルダを作るにはリワード広告が必要（Android 版「広告」）
+    /// ＋の「新しいフォルダ」。フォルダの中にフォルダを作るにはリワード広告が必要（docs/requirements.md「広告」）。
+    /// 広告を見て得た残りの数があればそのまま作成のシート、なければ広告の説明を出す。
     func onAddFolderClick() {
         guard uiState.canCreateFolder else { return }
-        eventChannel.send(.showCreateFolderSheet)
+        if getSubfolderCredits() > 0 {
+            eventChannel.send(.showCreateFolderSheet)
+        } else {
+            eventChannel.send(.offerRewardedAd(count: AdPolicy.subfoldersPerReward))
+        }
+    }
+
+    /// リワード広告の結果。
+    /// - 最後まで見た → 作れる数を増やして作成のシート
+    /// - 途中で閉じた → 何もしない
+    /// - 出せなかった → オフライン・在庫なしなどは広告なしで作れる。広告ブロックの可能性が高いときはオフにするようお願いする
+    func onRewardedAdResult(_ result: RewardedAdResult) {
+        switch result {
+        case .earned:
+            grantSubfolderCredits()
+            eventChannel.send(.showCreateFolderSheet)
+        case .dismissed:
+            break
+        case .failed(let failure):
+            switch decideRewardedAdFallback(failure) {
+            case .createWithoutAd: eventChannel.send(.showCreateFolderSheet)
+            case .askToDisableAdBlocker: eventChannel.send(.askToDisableAdBlocker)
+            }
+        }
     }
 
     /// 作成のシートで決定したとき。作ったフォルダの中を開く。
@@ -189,6 +230,7 @@ final class FolderDetailViewModel {
         guard uiState.canCreateFolder else { return }
         do {
             let id = try await createFolder(parentId: folderId, name: name, color: color)
+            consumeSubfolderCredit() // 広告を見て得た残りの数を1つ使う
             eventChannel.send(.openFolder(folderId: id))
         } catch {
             AppLog.error("フォルダを作れなかった: \(error)")

@@ -15,4 +15,13 @@ nonisolated enum SettingsKeys {
 
     static let folderMemoSortKey = "folder_memo_sort_key"
     static let folderMemoSortAsc = "folder_memo_sort_asc"
+
+    // 広告（AdStateRepository）
+    static let appLaunchCount = "app_launch_count"
+    static let appOpenAdLastShownAt = "app_open_ad_last_shown_at"
+    static let subfolderCredits = "subfolder_credits"
+
+    // レビューのお願い（ReviewRepository）
+    static let reviewStage = "review_stage"
+    static let reviewLikedAtLaunch = "review_liked_at_launch"
 }

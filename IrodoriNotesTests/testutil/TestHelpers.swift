@@ -71,10 +71,23 @@ func makeTestDefaults() throws -> UserDefaults {
     return defaults
 }
 
-/// テスト用の入れ物（メモリ上の DB・別の保存先の UserDefaults・固定の時計）。
-func makeTestContainer(now: Int64 = 0) throws -> (container: AppContainer, defaults: UserDefaults, clock: FixedClock) {
+/// つながっているかを決めておくネットワークの状態（リワード広告を出せなかったときの判断のテスト用）。
+final class FakeNetworkStatus: NetworkStatus, @unchecked Sendable {
+    var online: Bool
+
+    init(online: Bool) {
+        self.online = online
+        super.init()
+    }
+
+    override func isOnline() -> Bool { online }
+}
+
+/// テスト用の入れ物（メモリ上の DB・別の保存先の UserDefaults・固定の時計・つながっているかを決めたネットワーク）。
+func makeTestContainer(now: Int64 = 0, online: Bool = true) throws -> (container: AppContainer, defaults: UserDefaults, clock: FixedClock) {
     let defaults = try makeTestDefaults()
     let clock = FixedClock(now)
-    let container = AppContainer(database: try AppDatabase.makeInMemory(), defaults: defaults, clock: clock)
+    let container = AppContainer(
+        database: try AppDatabase.makeInMemory(), defaults: defaults, clock: clock, networkStatus: FakeNetworkStatus(online: online))
     return (container, defaults, clock)
 }

@@ -4,14 +4,16 @@ import SwiftUI
 /// - テーマ（端末に従う / ライト / ダーク）: この画面で直接切り替える
 /// - 「表示」「データ」「ゴミ箱」: それぞれの画面を開く
 /// - 下の小さな文字: 「オープンソースライセンス」の画面、「プライバシーポリシー」（アプリ内のブラウザ）
-/// 「広告のプライバシー設定」（同意が必要な地域の利用者だけ）はステップ11で足す。
+/// - 「広告のプライバシー設定」: 同意が必要な地域（EEA・英国・スイスなど）の利用者だけ。広告の同意の内容を変える画面（Google の UMP）を出す
 struct SettingsScreen: View {
     @Binding var path: NavigationPath
     @State private var viewModel: SettingsViewModel
+    private let ads: AdsManager
 
     init(container: AppContainer, path: Binding<NavigationPath>) {
         _path = path
         _viewModel = State(initialValue: container.makeSettingsViewModel())
+        ads = container.ads
     }
 
     var body: some View {
@@ -40,6 +42,16 @@ struct SettingsScreen: View {
                     SettingsLinkRow(title: "settings_trash", summary: "settings_trash_summary")
                 }
                 .accessibilityIdentifier("settings_trash")
+                // 同意が必要な地域の利用者だけに出す（判定は広告の同意の仕組みが行う）
+                if ads.consent.isPrivacyOptionsRequired {
+                    Button {
+                        Task { await ads.showPrivacyOptionsForm() }
+                    } label: {
+                        SettingsLinkRow(title: "settings_privacy_options", summary: "settings_privacy_options_summary")
+                            .foregroundStyle(Color(.label))
+                    }
+                    .accessibilityIdentifier("settings_privacy_options")
+                }
             } footer: {
                 // Android と同じく、右下に小さな文字で
                 HStack(spacing: 16) {

@@ -24,7 +24,12 @@ struct FolderDetailScreen: View {
     @State private var holdsProtectedScreen = false
     /// この画面が出たときの画面の積み重ねの数。閉じたとき（これより減ったとき）にフォルダをロックし直す
     @State private var depthOnScreen: Int?
+    /// 「広告を見ると、フォルダの中にフォルダを N 個作れます」の確認（N）。nil なら出していない
+    @State private var rewardedOfferCount: Int?
+    @State private var isAdBlockerAlertShown = false
+    @State private var isLoadingAd = false
     @Bindable private var messageCenter: MessageCenter
+    private let ads: AdsManager
     private let lockSession: LockSession
     private let authenticator: DeviceAuthenticator
     @Environment(\.dismiss) private var dismiss
@@ -39,6 +44,7 @@ struct FolderDetailScreen: View {
         messageCenter = container.messageCenter
         lockSession = container.lockSession
         authenticator = container.deviceAuthenticator
+        ads = container.ads
     }
 
     var body: some View {
@@ -123,6 +129,34 @@ struct FolderDetailScreen: View {
         } message: { request in
             Text(L10n.format("folder_delete_message", request.folder.name, folderContentsText(request.contents)))
         }
+        .alert(
+            "rewarded_folder_title",
+            isPresented: Binding(get: { rewardedOfferCount != nil }, set: { if !$0 { rewardedOfferCount = nil } }),
+            presenting: rewardedOfferCount
+        ) { _ in
+            Button("action_watch_ad") { watchRewardedAd() }
+            Button("action_cancel", role: .cancel) {}
+        } message: { count in
+            Text(L10n.count("rewarded_folder_message", count))
+        }
+        .alert("rewarded_ad_failed_title", isPresented: $isAdBlockerAlertShown) {
+            Button("action_retry") { watchRewardedAd() }
+            Button("action_cancel", role: .cancel) {}
+        } message: {
+            Text("rewarded_ad_failed_message")
+        }
+        .overlay {
+            if isLoadingAd {
+                // 広告を読み込んでいる間は「広告を読み込んでいます…」を出し、ほかの操作をできなくする
+                ZStack {
+                    Color.black.opacity(0.2).ignoresSafeArea()
+                    ProgressView { Text("rewarded_ad_loading") }
+                        .padding(24)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                }
+                .accessibilityIdentifier("ad_loading")
+            }
+        }
         .passcodeRequiredAlert(isPresented: $isPasscodeAlertShown) {
             if closesAfterPasscodeAlert { dismiss() }
         }
@@ -194,6 +228,19 @@ struct FolderDetailScreen: View {
     /// 認証するまで中身を隠しているか。
     private func isHidden(_ state: FolderDetailUiState) -> Bool {
         !state.isLoading && !lockSession.areUnlocked(state.lockedFolderIds)
+    }
+
+    // MARK: リワード広告（docs/requirements.md「広告」）
+
+    /// 読み込んでいる間は「読み込んでいます」を出し、読み込めたら広告を出す。結果は ViewModel が判断する。
+    private func watchRewardedAd() {
+        guard !isLoadingAd else { return }
+        isLoadingAd = true
+        Task {
+            let result = await ads.rewarded.loadAndShow(onLoaded: { isLoadingAd = false })
+            isLoadingAd = false
+            viewModel.onRewardedAdResult(result)
+        }
     }
 
     // MARK: ロック（docs/requirements.md「ロック」）
@@ -323,6 +370,10 @@ struct FolderDetailScreen: View {
             showSheet(.create)
         case .showLockChanged(let locked):
             messageCenter.show(L10n.string(locked ? "lock_done" : "unlock_done"))
+        case .offerRewardedAd(let count):
+            rewardedOfferCount = count
+        case .askToDisableAdBlocker:
+            isAdBlockerAlertShown = true
         }
     }
 }

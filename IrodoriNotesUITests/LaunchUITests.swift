@@ -8,7 +8,8 @@ final class LaunchUITests: XCTestCase {
 
     private func launch(language: String, locale: String) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+        // -ui-testing: メモリ上の DB で動かし、広告（同意の画面など）も使わない（シミュレーターのデータに触れないため）
+        app.launchArguments += ["-ui-testing", "-AppleLanguages", "(\(language))", "-AppleLocale", locale]
         app.launch()
         return app
     }

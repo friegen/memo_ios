@@ -23,6 +23,7 @@ struct MemoEditScreen: View {
     @State private var isExporting = false
     @Bindable private var messageCenter: MessageCenter
     private let exporter: MemoExporter
+    private let ads: AdsManager
     private let lockSession: LockSession
     private let authenticator: DeviceAuthenticator
     @Environment(\.dismiss) private var dismiss
@@ -34,6 +35,7 @@ struct MemoEditScreen: View {
         lockSession = container.lockSession
         authenticator = container.deviceAuthenticator
         exporter = container.memoExporter
+        ads = container.ads
     }
 
     var body: some View {
@@ -65,14 +67,18 @@ struct MemoEditScreen: View {
                         .allowsHitTesting(false)
                 }
             }
-            .safeAreaInset(edge: .bottom) {
-                // 書式パネル: 画面の下（キーボードが出ているときはキーボードのすぐ上）。選択を外しても閉じない
-                if isFormatPanelOpen {
-                    FormatPanel(
-                        state: formatPanelState,
-                        onToggle: { controller.toggle($0) },
-                        onColor: { controller.setColor($0) },
-                        onClose: { setFormatPanelOpen(false) })
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 0) {
+                    // バナー広告: 書式パネルの上（パネルを閉じているときは一番下）。キーボードが出ている間は隠す
+                    BannerAdSlot(adUnitID: AdUnitIDs.bannerEditor, ads: ads, isHidden: isKeyboardVisible)
+                    // 書式パネル: 画面の下（キーボードが出ているときはキーボードのすぐ上）。選択を外しても閉じない
+                    if isFormatPanelOpen {
+                        FormatPanel(
+                            state: formatPanelState,
+                            onToggle: { controller.toggle($0) },
+                            onColor: { controller.setColor($0) },
+                            onClose: { setFormatPanelOpen(false) })
+                    }
                 }
             }
             .toolbar(.hidden, for: .tabBar)
@@ -182,6 +188,7 @@ struct MemoEditScreen: View {
             .onDisappear {
                 // 画面を閉じたときに保存する（ここで作ったメモを空にして閉じたときは破棄する）
                 viewModel.onLeave(isClosing: true)
+                ads.editorDidDisappear()
                 if holdsProtectedScreen {
                     lockSession.releaseProtectedScreen()
                     holdsProtectedScreen = false
@@ -189,6 +196,7 @@ struct MemoEditScreen: View {
             }
             .onAppear {
                 controller.onFormatPanelStateChange = { formatPanelState = $0 }
+                ads.editorDidAppear() // 出ている間はメイン画面のバナーを隠す
             }
             .task { await viewModel.load() }
             .task { await viewModel.observeSettings() }
@@ -224,7 +232,8 @@ struct MemoEditScreen: View {
             isExporting = false
             switch result {
             case .success(let files):
-                ShareSheet.present(files)
+                // 共有先のアプリに移って戻ったときは、アプリ起動広告を出さない
+                ShareSheet.present(files, appOpenAds: ads.appOpen)
             case .failure(let error):
                 AppLog.error("出力できなかった: \(error)")
                 messageCenter.show(L10n.string("export_failed"))

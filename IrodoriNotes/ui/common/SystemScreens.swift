@@ -18,12 +18,15 @@ enum InAppBrowser {
 /// 共有シートから「ファイルに保存」「プリント」なども選べる。
 enum ShareSheet {
 
-    static func present(_ files: [URL]) {
+    /// - Parameter appOpenAds: 共有先のアプリに移って戻ったときに、アプリ起動広告を出さないようにする
+    static func present(_ files: [URL], appOpenAds: AppOpenAdManager? = nil) {
         guard let presenter = TopViewController.current() else {
             AppLog.error("共有シートを出す画面が見つからない")
             return
         }
         let controller = UIActivityViewController(activityItems: files, applicationActivities: nil)
+        appOpenAds?.beginExternalScreen()
+        controller.completionWithItemsHandler = { _, _, _, _ in appOpenAds?.endExternalScreen() }
         // iPad で iPhone 版が動くときに備えて、出す位置を決めておく（iPhone では使われない）
         controller.popoverPresentationController?.sourceView = presenter.view
         controller.popoverPresentationController?.sourceRect = CGRect(

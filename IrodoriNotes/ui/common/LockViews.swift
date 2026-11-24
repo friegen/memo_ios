@@ -35,13 +35,19 @@ struct LockedPlaceholder: View {
 /// アプリの切り替え画面に中身を映さないための覆い（起動画面と同じ見た目）。
 struct PrivacyCover: View {
     var body: some View {
+        LaunchCover().accessibilityIdentifier("privacy_cover")
+    }
+}
+
+/// iOS の起動画面（Config/Info.plist の UILaunchScreen）と同じ見た目: 背景色とロゴ。
+struct LaunchCover: View {
+    var body: some View {
         ZStack {
             Color("LaunchBackground")
             Image("LaunchLogo")
                 .accessibilityHidden(true)
         }
         .ignoresSafeArea()
-        .accessibilityIdentifier("privacy_cover")
     }
 }
 

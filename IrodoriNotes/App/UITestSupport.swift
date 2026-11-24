@@ -19,6 +19,10 @@ enum UITestSupport {
         let suiteName = "ui-testing"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
+        // 起動の引数 `-review_stage DISLIKED` などで、レビューのお願いの段階を決めて起動できるようにする（アプリ起動広告の確かめ用）
+        if let stage = UserDefaults.standard.string(forKey: SettingsKeys.reviewStage) {
+            defaults.set(stage, forKey: SettingsKeys.reviewStage)
+        }
         do {
             let database = try AppDatabase.makeInMemory()
             if let index = arguments.firstIndex(of: seedArgument), index + 1 < arguments.count {

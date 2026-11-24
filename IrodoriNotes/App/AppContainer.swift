@@ -15,6 +15,9 @@ final class AppContainer {
     let settingsRepository: SettingsRepository
     let storageRepository: StorageRepository
     let licenseRepository: LicenseRepository
+    let adStateRepository: AdStateRepository
+    let reviewRepository: ReviewRepository
+    let networkStatus: NetworkStatus
 
     /// アプリ全体のお知らせ（「ゴミ箱に移動しました［元に戻す］」など）
     let messageCenter = MessageCenter()
@@ -24,11 +27,17 @@ final class AppContainer {
     let deviceAuthenticator: DeviceAuthenticator
     /// メモの出力（PDF・画像・テキスト・HTML のファイルを作る）
     let memoExporter = MemoExporter()
+    /// 広告（AdMob・UMP・ATT）。単体テスト・UI テストでは使わない（`AdsAvailability`）
+    private(set) var ads: AdsManager!
 
-    /// - Parameter makeAuthenticator: UI テストでは認証の結果を決めて返すものに差し替える
+    /// - Parameters:
+    ///   - makeAuthenticator: UI テストでは認証の結果を決めて返すものに差し替える
+    ///   - networkStatus: テストではつながっているかを決めるものに差し替える
     init(
         database: AppDatabase, defaults: UserDefaults = .standard, clock: AppClock = AppClock(),
-        makeAuthenticator: (LockSession) -> DeviceAuthenticator = { DeviceAuthenticator(lockSession: $0) }
+        makeAuthenticator: (LockSession) -> DeviceAuthenticator = { DeviceAuthenticator(lockSession: $0) },
+        networkStatus: NetworkStatus = NetworkStatus(),
+        adsAvailability: AdsAvailability = .current
     ) {
         self.database = database
         self.clock = clock
@@ -38,7 +47,15 @@ final class AppContainer {
         settingsRepository = SettingsRepository(defaults: defaults)
         storageRepository = StorageRepository()
         licenseRepository = LicenseRepository()
+        adStateRepository = AdStateRepository(defaults: defaults)
+        reviewRepository = ReviewRepository(defaults: defaults)
+        self.networkStatus = networkStatus
         deviceAuthenticator = makeAuthenticator(lockSession)
+        ads = AdsManager(
+            availability: adsAvailability,
+            shouldShowAppOpenAd: makeShouldShowAppOpenAdUseCase(),
+            recordAppOpenAdShown: makeRecordAppOpenAdShownUseCase(),
+            clock: clock)
     }
 
     /// アプリで使う入れ物（ファイルの DB・ふだんの UserDefaults）。
@@ -217,6 +234,30 @@ final class AppContainer {
         SetFolderLockedUseCase(folderRepository: folderRepository)
     }
 
+    func makeShouldShowAppOpenAdUseCase() -> ShouldShowAppOpenAdUseCase {
+        ShouldShowAppOpenAdUseCase(adStateRepository: adStateRepository, reviewRepository: reviewRepository, clock: clock)
+    }
+
+    func makeRecordAppOpenAdShownUseCase() -> RecordAppOpenAdShownUseCase {
+        RecordAppOpenAdShownUseCase(adStateRepository: adStateRepository, clock: clock)
+    }
+
+    func makeGetSubfolderCreditsUseCase() -> GetSubfolderCreditsUseCase {
+        GetSubfolderCreditsUseCase(adStateRepository: adStateRepository)
+    }
+
+    func makeGrantSubfolderCreditsUseCase() -> GrantSubfolderCreditsUseCase {
+        GrantSubfolderCreditsUseCase(adStateRepository: adStateRepository)
+    }
+
+    func makeConsumeSubfolderCreditUseCase() -> ConsumeSubfolderCreditUseCase {
+        ConsumeSubfolderCreditUseCase(adStateRepository: adStateRepository)
+    }
+
+    func makeDecideRewardedAdFallbackUseCase() -> DecideRewardedAdFallbackUseCase {
+        DecideRewardedAdFallbackUseCase(networkStatus: networkStatus)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
@@ -267,7 +308,11 @@ final class AppContainer {
             setMemoPinned: makeSetMemoPinnedUseCase(),
             setFolderPinned: makeSetFolderPinnedUseCase(),
             setMemoLocked: makeSetMemoLockedUseCase(),
-            setFolderLocked: makeSetFolderLockedUseCase())
+            setFolderLocked: makeSetFolderLockedUseCase(),
+            getSubfolderCredits: makeGetSubfolderCreditsUseCase(),
+            grantSubfolderCredits: makeGrantSubfolderCreditsUseCase(),
+            consumeSubfolderCredit: makeConsumeSubfolderCreditUseCase(),
+            decideRewardedAdFallback: makeDecideRewardedAdFallbackUseCase())
     }
 
     func makeMemoEditViewModel(memoId: Int64?, folderId: Int64?) -> MemoEditViewModel {
