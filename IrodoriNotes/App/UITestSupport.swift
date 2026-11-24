@@ -6,7 +6,7 @@ import GRDB
 ///
 /// UI テストは起動の引数で次を指定する:
 /// - `-ui-testing`: メモリ上の DB と、空の別の保存先の設定を使う（シミュレーターに入っているデータを使わない・消さない）
-/// - `-ui-test-seed memos` / `folders` / `deep`: ダミーのメモ・フォルダ・5階層のフォルダを入れて起動する
+/// - `-ui-test-seed memos` / `folders` / `deep` / `trash`: ダミーのメモ・フォルダ・5階層のフォルダ・ゴミ箱の中身を入れて起動する
 enum UITestSupport {
     static let uiTestingArgument = "-ui-testing"
     static let seedArgument = "-ui-test-seed"
@@ -71,6 +71,27 @@ enum UITestSupport {
                         parentId: parent, name: "Level \(level)", colorKey: FolderColor.default.rawValue,
                         createdAt: base, updatedAt: base))
                 }
+            }
+        case "trash":
+            // ゴミ箱（削除日の新しい順）: Old note（メモタブのメモ）→ Travel（中にフォルダ Hotels とメモ Packing list）
+            // → Itinerary（Travel の中のメモ。Travel より先に単体で削除したので、元のフォルダもゴミ箱にある）
+            // 起動時に30日を過ぎたものが消されるので、削除日は今の時刻から決める
+            let now = AppClock().now()
+            try database.writer.write { db in
+                func memo(_ text: String, folderId: Int64?, deletedAt: Int64, withFolder: Bool = false) throws {
+                    _ = try MemoDao.insert(db, MemoRecord(
+                        folderId: folderId, html: text, plainText: text, firstLine: text, charCount: CharCounter.countChars(text),
+                        createdAt: base, updatedAt: base, deletedAt: deletedAt, deletedWithFolder: withFolder))
+                }
+                try memo("Old note", folderId: nil, deletedAt: now - hour)
+                let travel = try FolderDao.insert(db, FolderRecord(
+                    parentId: nil, name: "Travel", colorKey: FolderColor.green.rawValue, createdAt: base, updatedAt: base,
+                    deletedAt: now - 2 * hour))
+                _ = try FolderDao.insert(db, FolderRecord(
+                    parentId: travel, name: "Hotels", colorKey: FolderColor.default.rawValue, createdAt: base, updatedAt: base,
+                    deletedAt: now - 2 * hour, deletedWithParent: true))
+                try memo("Packing list", folderId: travel, deletedAt: now - 2 * hour, withFolder: true)
+                try memo("Itinerary", folderId: travel, deletedAt: now - 3 * hour)
             }
         default:
             fatalError("知らないダミーデータ: \(name)")

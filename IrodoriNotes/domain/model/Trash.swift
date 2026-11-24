@@ -10,9 +10,25 @@ nonisolated enum TrashPolicy {
 }
 
 /// ゴミ箱の1項目。
-nonisolated enum TrashItem: Equatable, Sendable {
+nonisolated enum TrashItem: Equatable, Sendable, Identifiable {
     case memo(TrashedMemo)
     case folder(TrashedFolder)
+
+    /// 一覧の行を見分ける値（メモとフォルダで id が重なることがあるので、種類も入れる）。
+    var id: String {
+        switch self {
+        case .memo(let item): "memo-\(item.memo.id)"
+        case .folder(let item): "folder-\(item.folder.id)"
+        }
+    }
+
+    /// 上の階層もゴミ箱にあるか（復元するときに「フォルダごと復元しますか？」の確認が要る）。
+    var isParentInTrash: Bool {
+        switch self {
+        case .memo(let item): item.isFolderInTrash
+        case .folder(let item): item.isParentInTrash
+        }
+    }
 
     var deletedAt: Int64 {
         switch self {

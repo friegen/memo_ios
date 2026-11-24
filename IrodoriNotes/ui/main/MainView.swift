@@ -38,7 +38,8 @@ struct MainView: View {
             }
             Tab("tab_settings", systemImage: "gearshape", value: MainTab.settings) {
                 NavigationStack(path: $settingsPath) {
-                    SettingsScreen()
+                    SettingsScreen(container: container, path: $settingsPath)
+                        .navigationDestination(for: AppRoute.self) { destination($0, path: $settingsPath) }
                 }
             }
         }
@@ -55,6 +56,16 @@ struct MainView: View {
             MemoEditScreen(container: container, memoId: memoId, folderId: folderId)
         case .folder(let folderId):
             FolderDetailScreen(container: container, folderId: folderId, path: path)
+        case .displaySettings:
+            DisplaySettingsScreen(container: container)
+        case .dataSettings:
+            DataSettingsScreen(container: container)
+        case .trash:
+            TrashScreen(container: container)
+        case .licenses:
+            LicensesScreen(container: container)
+        case .license(let library):
+            LicenseDetailScreen(library: library)
         }
     }
 

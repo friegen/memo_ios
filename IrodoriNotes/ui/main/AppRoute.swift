@@ -6,4 +6,14 @@ enum AppRoute: Hashable {
     case editor(memoId: Int64?, folderId: Int64?)
     /// フォルダの中
     case folder(folderId: Int64)
+    /// 設定の「表示」（文字の大きさ・行間）
+    case displaySettings
+    /// 設定の「データ」（データサイズ・バックアップ）
+    case dataSettings
+    /// ゴミ箱
+    case trash
+    /// オープンソースライセンスの一覧
+    case licenses
+    /// ライセンスの全文
+    case license(OssLibrary)
 }

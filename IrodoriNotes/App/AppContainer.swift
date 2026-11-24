@@ -13,6 +13,8 @@ final class AppContainer {
     let folderRepository: FolderRepository
     let trashRepository: TrashRepository
     let settingsRepository: SettingsRepository
+    let storageRepository: StorageRepository
+    let licenseRepository: LicenseRepository
 
     /// アプリ全体のお知らせ（「ゴミ箱に移動しました［元に戻す］」など）
     let messageCenter = MessageCenter()
@@ -24,6 +26,8 @@ final class AppContainer {
         folderRepository = FolderRepository(database: database)
         trashRepository = TrashRepository(database: database)
         settingsRepository = SettingsRepository(defaults: defaults)
+        storageRepository = StorageRepository()
+        licenseRepository = LicenseRepository()
     }
 
     /// アプリで使う入れ物（ファイルの DB・ふだんの UserDefaults）。
@@ -154,6 +158,46 @@ final class AppContainer {
         MoveMemoToFolderUseCase(memoRepository: memoRepository, clock: clock)
     }
 
+    func makeSetThemeModeUseCase() -> SetThemeModeUseCase {
+        SetThemeModeUseCase(settingsRepository: settingsRepository)
+    }
+
+    func makeSetFontSizeUseCase() -> SetFontSizeUseCase {
+        SetFontSizeUseCase(settingsRepository: settingsRepository)
+    }
+
+    func makeSetLineSpacingUseCase() -> SetLineSpacingUseCase {
+        SetLineSpacingUseCase(settingsRepository: settingsRepository)
+    }
+
+    func makeGetDataUsageUseCase() -> GetDataUsageUseCase {
+        GetDataUsageUseCase(storageRepository: storageRepository)
+    }
+
+    func makeGetOssLibrariesUseCase() -> GetOssLibrariesUseCase {
+        GetOssLibrariesUseCase(licenseRepository: licenseRepository)
+    }
+
+    func makeObserveTrashItemsUseCase() -> ObserveTrashItemsUseCase {
+        ObserveTrashItemsUseCase(trashRepository: trashRepository)
+    }
+
+    func makeDeleteMemoPermanentlyUseCase() -> DeleteMemoPermanentlyUseCase {
+        DeleteMemoPermanentlyUseCase(trashRepository: trashRepository)
+    }
+
+    func makeDeleteFolderPermanentlyUseCase() -> DeleteFolderPermanentlyUseCase {
+        DeleteFolderPermanentlyUseCase(trashRepository: trashRepository)
+    }
+
+    func makeCountTrashedFolderContentsUseCase() -> CountTrashedFolderContentsUseCase {
+        CountTrashedFolderContentsUseCase(trashRepository: trashRepository)
+    }
+
+    func makeEmptyTrashUseCase() -> EmptyTrashUseCase {
+        EmptyTrashUseCase(trashRepository: trashRepository)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
@@ -213,6 +257,36 @@ final class AppContainer {
             revertMemo: makeRevertMemoUseCase(),
             discardMemo: makeDiscardMemoUseCase(),
             observeEditorSettings: makeObserveEditorSettingsUseCase())
+    }
+
+    func makeSettingsViewModel() -> SettingsViewModel {
+        SettingsViewModel(observeThemeMode: makeObserveThemeModeUseCase(), setThemeMode: makeSetThemeModeUseCase())
+    }
+
+    func makeDisplaySettingsViewModel() -> DisplaySettingsViewModel {
+        DisplaySettingsViewModel(
+            observeEditorSettings: makeObserveEditorSettingsUseCase(),
+            setFontSize: makeSetFontSizeUseCase(),
+            setLineSpacing: makeSetLineSpacingUseCase())
+    }
+
+    func makeDataSettingsViewModel() -> DataSettingsViewModel {
+        DataSettingsViewModel(getDataUsage: makeGetDataUsageUseCase())
+    }
+
+    func makeLicensesViewModel() -> LicensesViewModel {
+        LicensesViewModel(getOssLibraries: makeGetOssLibrariesUseCase())
+    }
+
+    func makeTrashViewModel() -> TrashViewModel {
+        TrashViewModel(
+            observeTrashItems: makeObserveTrashItemsUseCase(),
+            restoreMemo: makeRestoreMemoUseCase(),
+            restoreFolder: makeRestoreFolderUseCase(),
+            deleteMemoPermanently: makeDeleteMemoPermanentlyUseCase(),
+            deleteFolderPermanently: makeDeleteFolderPermanentlyUseCase(),
+            countTrashedFolderContents: makeCountTrashedFolderContentsUseCase(),
+            emptyTrash: makeEmptyTrashUseCase())
     }
 }
 
