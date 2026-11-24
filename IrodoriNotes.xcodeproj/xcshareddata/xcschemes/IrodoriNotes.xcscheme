@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "2700"
-   version = "1.7">
+   version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -40,8 +40,7 @@
             </BuildableReference>
          </TestableReference>
          <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
+            skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "000000000000000300000000"
@@ -65,12 +64,12 @@
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "000000000000000100000000"
-               BuildableName = "IrodoriNotes.app"
-               BlueprintName = "IrodoriNotes"
-               ReferencedContainer = "container:IrodoriNotes.xcodeproj">
-            </BuildableReference>
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "000000000000000100000000"
+            BuildableName = "IrodoriNotes.app"
+            BlueprintName = "IrodoriNotes"
+            ReferencedContainer = "container:IrodoriNotes.xcodeproj">
+         </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
@@ -82,12 +81,12 @@
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "000000000000000100000000"
-               BuildableName = "IrodoriNotes.app"
-               BlueprintName = "IrodoriNotes"
-               ReferencedContainer = "container:IrodoriNotes.xcodeproj">
-            </BuildableReference>
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "000000000000000100000000"
+            BuildableName = "IrodoriNotes.app"
+            BlueprintName = "IrodoriNotes"
+            ReferencedContainer = "container:IrodoriNotes.xcodeproj">
+         </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction

@@ -19,10 +19,15 @@ enum UITestSupport {
         let suiteName = "ui-testing"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
-        // 起動の引数 `-review_stage DISLIKED` などで、レビューのお願いの段階を決めて起動できるようにする（アプリ起動広告の確かめ用）
-        if let stage = UserDefaults.standard.string(forKey: SettingsKeys.reviewStage) {
-            defaults.set(stage, forKey: SettingsKeys.reviewStage)
+        // 起動の引数で、レビューのお願いの段階・アプリを開いた回数を決めて起動できるようにする（レビューのお願い・アプリ起動広告の確かめ用）
+        // 例: `-ui-test-review-stage DISLIKED`、`-ui-test-launch-count 9`（次に開くと10回目）、`-ui-test-liked-at 10`
+        // 設定と同じ名前（`-app_launch_count` など）で渡すと、その起動の間はずっとその値が優先され、保存しても変わらなくなるので、別の名前にしている
+        func argument(_ name: String) -> String? {
+            arguments.firstIndex(of: name).flatMap { $0 + 1 < arguments.count ? arguments[$0 + 1] : nil }
         }
+        if let stage = argument("-ui-test-review-stage") { defaults.set(stage, forKey: SettingsKeys.reviewStage) }
+        if let count = argument("-ui-test-launch-count").flatMap(Int.init) { defaults.set(count, forKey: SettingsKeys.appLaunchCount) }
+        if let likedAt = argument("-ui-test-liked-at").flatMap(Int.init) { defaults.set(likedAt, forKey: SettingsKeys.reviewLikedAtLaunch) }
         do {
             let database = try AppDatabase.makeInMemory()
             if let index = arguments.firstIndex(of: seedArgument), index + 1 < arguments.count {

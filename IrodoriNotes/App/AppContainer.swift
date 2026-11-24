@@ -258,10 +258,32 @@ final class AppContainer {
         DecideRewardedAdFallbackUseCase(networkStatus: networkStatus)
     }
 
+    func makeRecordAppLaunchUseCase() -> RecordAppLaunchUseCase {
+        RecordAppLaunchUseCase(adStateRepository: adStateRepository)
+    }
+
+    func makeGetReviewPromptUseCase() -> GetReviewPromptUseCase {
+        GetReviewPromptUseCase(adStateRepository: adStateRepository, reviewRepository: reviewRepository)
+    }
+
+    func makeAnswerFavoriteUseCase() -> AnswerFavoriteUseCase {
+        AnswerFavoriteUseCase(adStateRepository: adStateRepository, reviewRepository: reviewRepository)
+    }
+
+    func makeMarkReviewAskedUseCase() -> MarkReviewAskedUseCase {
+        MarkReviewAskedUseCase(reviewRepository: reviewRepository)
+    }
+
     // MARK: ViewModel
 
     func makeMainViewModel() -> MainViewModel {
-        MainViewModel(getThemeMode: makeGetThemeModeUseCase(), observeThemeMode: makeObserveThemeModeUseCase())
+        MainViewModel(
+            getThemeMode: makeGetThemeModeUseCase(),
+            observeThemeMode: makeObserveThemeModeUseCase(),
+            recordAppLaunch: makeRecordAppLaunchUseCase(),
+            getReviewPrompt: makeGetReviewPromptUseCase(),
+            answerFavorite: makeAnswerFavoriteUseCase(),
+            markReviewAsked: makeMarkReviewAskedUseCase())
     }
 
     func makeMemoListViewModel() -> MemoListViewModel {

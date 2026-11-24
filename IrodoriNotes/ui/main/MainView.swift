@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 /// 下タブの種類。
@@ -10,6 +11,7 @@ enum MainTab: Hashable {
 /// タブを押すと、前に見ていた画面ではなく、いつもそのタブのトップを開く（Android 版 v1.8）。
 /// 下タブの上にバナー広告（編集画面が出ている間は隠す。編集画面は自分のバナーを出す）。
 /// 新しく起動したときは、起動画面と同じ見た目で覆ったまま、広告の同意の確認とアプリ起動広告を待つ（`AdsManager`）。
+/// アプリを開いたとき（新しく起動した・バックグラウンドから戻った）は、レビューのお願いがあれば出す（`ReviewPolicy`）。
 struct MainView: View {
     let container: AppContainer
 
@@ -20,7 +22,12 @@ struct MainView: View {
     @State private var settingsPath = NavigationPath()
     /// バックグラウンドに回ったことがあるか（戻ってきたときにアプリ起動広告を出すため）
     @State private var wasInBackground = false
+    /// 「気に入っていただけましたか？」を出しているか
+    @State private var isFavoriteQuestionShown = false
+    /// 出しているお礼の文（「気に入った」「いまひとつ」へのお礼）
+    @State private var thanksMessage: LocalizedStringKey?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) private var requestReview
 
     init(container: AppContainer) {
         self.container = container
@@ -69,12 +76,52 @@ struct MainView: View {
             } else if phase == .active, wasInBackground {
                 // バックグラウンドから戻った（アプリの中の画面の行き来・通知センターでは出さない）
                 wasInBackground = false
-                Task { await container.ads.onForeground() }
+                Task {
+                    await container.ads.onForeground() // アプリ起動広告を出したら、閉じるまで待つ
+                    viewModel.onAppOpened()
+                }
             }
         }
-        .task { await container.ads.handleColdLaunch() }
+        .task {
+            await container.ads.handleColdLaunch() // 起動画面と同じ見た目の覆いが外れるまで
+            viewModel.onAppOpened()
+        }
+        .task {
+            for await event in viewModel.events() { handle(event) }
+        }
+        .alert("review_favorite_title", isPresented: $isFavoriteQuestionShown) {
+            Button("review_favorite_yes") { viewModel.onFavoriteAnswered(liked: true) }
+            Button("review_favorite_no") { viewModel.onFavoriteAnswered(liked: false) }
+        } message: {
+            Text("review_favorite_message")
+        }
+        // お礼（題名なし。Android と同じ）。質問とは別の状態にして、質問が閉じる途中でも消されないようにする
+        .alert(
+            Text(verbatim: ""),
+            isPresented: Binding(get: { thanksMessage != nil }, set: { if !$0 { thanksMessage = nil } }),
+            presenting: thanksMessage
+        ) { _ in
+            Button("action_ok", role: .cancel) {}
+        } message: { message in
+            Text(message)
+        }
         .background(WindowThemeApplier(mode: viewModel.uiState.themeMode))
         .task { await viewModel.observe() }
+    }
+
+    private func handle(_ event: MainEvent) {
+        switch event {
+        case .askFavorite:
+            isFavoriteQuestionShown = true
+        case .thankForLiking:
+            thanksMessage = "review_liked_message"
+        case .thankForFeedback:
+            thanksMessage = "review_disliked_message"
+        case .requestReview:
+            // iOS のレビューのダイアログ（その場で星を付けられる）。出すかどうか・回数は iOS が決める（1年に3回まで）。
+            // Apple の決まりで、アプリ独自の「レビューを書く／今はしない」は出さない（docs/requirements.md）
+            requestReview()
+        }
     }
 
     /// 下タブの上のバナー広告。編集画面が出ている間は隠す（作り直さない）。
