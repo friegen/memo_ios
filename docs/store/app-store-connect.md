@@ -9,6 +9,41 @@ App Store Connect（https://appstoreconnect.apple.com/ 。Google Play Console �
 
 ---
 
+## 0. 申請の流れ（この順に進める）
+
+かかる時間の目安: 準備とアップロード 30分〜1時間、App Store Connect の入力 1〜2時間（12言語の貼り付けとスクリーンショット）、審査 1〜2日。
+
+### A. Mac での準備（ビルドを作って送る）
+1. **Mac の memo_ios を最新にする**: `git pull`
+2. **バンドル ID を登録する**（開発者サイト。Google Play にはない作業）: https://developer.apple.com/account/resources/identifiers/list →「＋」→「App IDs」→「App」→ Description `Irodori Notes`、Bundle ID は Explicit で `xyz.friegen.memo` → Capabilities は何も選ばない → Register
+3. **配布用のプロファイルを作る**: https://developer.apple.com/account/resources/profiles/list →「＋」→ Distribution の「App Store Connect」→ App ID `xyz.friegen.memo` → 証明書は Apple Distribution（片思いチェッカーと同じもの）→ 名前を **`Irodori Notes App Store`**（1文字でも違うとプロジェクトが見つけられない）→ Generate → Download → ダウンロードしたファイルをダブルクリック
+4. **アーカイブを作る**（Android の「署名付き AAB を作る」にあたる）: Xcode で `IrodoriNotes.xcodeproj` を開く → 上の実行先を「Any iOS Device (arm64)」にする → Product → Archive。終わると Organizer（作ったアーカイブの一覧）が開く
+   - 署名のエラーで止まったら、エラーの文をターミナルの窓の Claude に渡す
+5. **App Store Connect にアプリを作る**（下の「1」）。アップロードの前に作っておく（アプリが無いと送り先が無い）
+6. **ビルドを送る**: Organizer で今のアーカイブを選ぶ →「Distribute App」→「App Store Connect」→ Distribute（途中で署名を聞かれたら、証明書 Apple Distribution・プロファイル `Irodori Notes App Store`）
+   - 最後に「Upload Symbols Failed … GoogleMobileAds.framework / UserMessagingPlatform.framework」と出るのは問題ない（アップロードは成功している。片思いチェッカーと同じ）
+   - App Store Connect で選べるようになるまで数分〜30分かかる（処理が終わると Apple からメールが来る）。その間に B を進める
+
+### B. App Store Connect での入力（https://appstoreconnect.apple.com/ ）
+7. **「App 情報」**: 右上の言語のメニューで12言語を足し、言語ごとに名前・サブタイトルを貼る（下の「2」）。カテゴリ・コンテンツ配信権・年齢制限指定（下の「3」）
+8. **「価格および配信状況」**: 無料、**Mac・Vision Pro のチェックを外す**（下の「3」）
+9. **「App のプライバシー」**: プライバシーポリシーの URL と、集めるデータの答え → 右上の「公開」（下の「4」）
+10. **バージョンのページ「1.0 提出準備中」**（言語ごと）: スクリーンショット（中型ディスプレイは必須）・プロモーション用テキスト・説明・キーワード・サポート URL・マーケティング URL（下の「2」「6」）
+11. **バージョンのページ（言語によらない欄）**:
+    - 「ビルド」の「＋」で、6 で送ったビルド（1.0.0 (1)）を選ぶ
+    - 著作権 `2026 friegen`
+    - 「App Review に関する情報」: サインイン不要、連絡先、メモの英文（下の「5」）
+    - 「このバージョンのリリース」（下の「5」）
+12. **右上の「審査用に追加」→「審査へ提出」**。足りない欄があると赤字で教えてくれるので、そこを埋める
+
+### C. 提出のあと
+- 状態は「審査待ち」→「審査中」→「配信準備完了」（自動でリリースにしていれば、そのまま App Store に出る）。結果はメールでも来る
+- **リジェクト（却下）されたら**、App Store Connect の「App Review」のメッセージをブラウザの窓の Claude に貼る。直し方と返事の文案を作る
+- **公開されたら**、ブラウザの窓の Claude に伝える → friegen.github.io のサポートのページを検索に出す・トップページに App Store のリンクを足す
+- 実機が無いので TestFlight（Google Play の内部テストにあたる）は使わない
+
+---
+
 ## 1. アプリを作る（「マイ App」→「＋」→「新規 App」）
 
 | 項目 | 入れるもの | メモ |
