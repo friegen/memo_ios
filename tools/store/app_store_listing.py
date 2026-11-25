@@ -76,6 +76,13 @@ SUBTITLE = {
     "id": "Catatan berwarna & penghitung",
 }
 
+# App Store の名前（Google Play の名前のままでは、App Store のほかのアプリで使われていて保存できなかった言語だけ。2026-11-25）
+# 名前は App Store 全体で1つしか使えない。ここにない言語は Google Play の名前（store/listing の題名）をそのまま使う
+NAME = {
+    "ja": "いろどりメモ - 文字数がわかる色分けメモ帳",
+    "es": "Irodori Notes - Notas de color",
+}
+
 # 名前・サブタイトルにある言葉は、キーワードに入れなくても検索に使われる（Apple の決まり）。カンマの後に空白を入れない
 KEYWORDS = {
     "en": "memo,notepad,character counter,word count,folder,text color,lock,pdf,export,draft,highlight,journal",
@@ -131,7 +138,7 @@ def main():
     for android, (code, ja_name, en_name) in LANGUAGES.items():
         title, short, long = sections((ANDROID_LISTING / f"{android}.md").read_text(encoding="utf-8"))
         description = to_ios(android, long)
-        fields = {"name": title, "subtitle": SUBTITLE[android], "promo": short, "keywords": KEYWORDS[android],
+        fields = {"name": NAME.get(android, title), "subtitle": SUBTITLE[android], "promo": short, "keywords": KEYWORDS[android],
                   "description": description}
         for key, value in fields.items():
             if len(value) > LIMITS[key]:

@@ -1,8 +1,8 @@
 # スペイン語（スペイン・メキシコ）（App Store Connect: Spanish (Spain), Spanish (Mexico)）
 
-## 名前（29 / 30 文字）
+## 名前（30 / 30 文字）
 ```
-Irodori Notes - Bloc de notas
+Irodori Notes - Notas de color
 ```
 
 ## サブタイトル（26 / 30 文字）

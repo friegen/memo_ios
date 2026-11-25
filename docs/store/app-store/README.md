@@ -6,8 +6,8 @@ App Store Connect の「App 情報」「（バージョンの）App Store」に�
 | 言語 | App Store Connect の言語 | ファイル | 名前 | サブタイトル | キーワード | 説明文 |
 |---|---|---|---|---|---|---|
 | 英語（U.S.） | English (U.S.) | [en.md](en.md) | 29 | 28 | 99 | 1506 |
-| 日本語 | Japanese | [ja.md](ja.md) | 19 | 15 | 54 | 686 |
-| スペイン語（スペイン・メキシコ） | Spanish (Spain), Spanish (Mexico) | [es.md](es.md) | 29 | 26 | 92 | 1641 |
+| 日本語 | Japanese | [ja.md](ja.md) | 22 | 15 | 54 | 686 |
+| スペイン語（スペイン・メキシコ） | Spanish (Spain), Spanish (Mexico) | [es.md](es.md) | 30 | 26 | 92 | 1641 |
 | ポルトガル語（ブラジル・ポルトガル） | Portuguese (Brazil), Portuguese (Portugal) | [pt.md](pt.md) | 30 | 26 | 92 | 1597 |
 | フランス語（フランス・カナダ） | French, French (Canada) | [fr.md](fr.md) | 26 | 26 | 94 | 1840 |
 | ドイツ語 | German | [de.md](de.md) | 26 | 29 | 93 | 1643 |
@@ -17,6 +17,7 @@ App Store Connect の「App 情報」「（バージョンの）App Store」に�
 
 - 上限: 名前 30・サブタイトル 30・プロモーションテキスト 170・キーワード 100・説明文 4,000 文字（作るときに確かめている）
 - 「名前」は App Store 全体で同じ名前のアプリがあると使えない。そのときは App Store Connect で教えてもらえるので、少し変える
+  - 日本語・スペイン語は Google Play と同じ名前が使えなかったので変えた（2026-11-25。`tools/store/app_store_listing.py` の `NAME`）: 日本語 `いろどりメモ - 文字数がわかる色分けメモ帳`、スペイン語 `Irodori Notes - Notas de color`
 - 名前・サブタイトルにある言葉はキーワードに入れなくても検索に使われるので、キーワードは別の言葉にしている
 - 「No.1」「最高」などの言葉や、ほかのアプリの名前は使っていない（Apple の審査ガイドライン 2.3.7）
 - 日本語・英語以外は Claude が作った。公開前にネイティブの人に見てもらえるとより安心
