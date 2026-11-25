@@ -18,6 +18,7 @@ App Store Connect（https://appstoreconnect.apple.com/ 。Google Play Console �
 2. **バンドル ID を登録する**（開発者サイト。Google Play にはない作業）: https://developer.apple.com/account/resources/identifiers/list →「＋」→「App IDs」→「App」→ Description `Irodori Notes`、Bundle ID は Explicit で `xyz.friegen.memo` → Capabilities は何も選ばない → Register
 3. **配布用のプロファイルを作る**: https://developer.apple.com/account/resources/profiles/list →「＋」→ Distribution の「App Store Connect」→ App ID `xyz.friegen.memo` → 証明書は Apple Distribution（片思いチェッカーと同じもの）→ 名前を **`Irodori Notes App Store`**（1文字でも違うとプロジェクトが見つけられない）→ Generate → Download → ダウンロードしたファイルをダブルクリック
 4. **アーカイブを作る**（Android の「署名付き AAB を作る」にあたる）: Xcode で `IrodoriNotes.xcodeproj` を開く → 上の実行先を「Any iOS Device (arm64)」にする → Product → Archive。終わると Organizer（作ったアーカイブの一覧）が開く
+   - 「"Irodori Notes App Store" profile is missing.」と出たら「Download」を押す（ダブルクリックで取り込めていなくても、Xcode が開発者サイトから取ってくる。2026-11-25 にこれでアーカイブできた）
    - 署名のエラーで止まったら、エラーの文をターミナルの窓の Claude に渡す
 5. **App Store Connect にアプリを作る**（下の「1」）。アップロードの前に作っておく（アプリが無いと送り先が無い）
 6. **ビルドを送る**: Organizer で今のアーカイブを選ぶ →「Distribute App」→「App Store Connect」→ Distribute（途中で署名を聞かれたら、証明書 Apple Distribution・プロファイル `Irodori Notes App Store`）
